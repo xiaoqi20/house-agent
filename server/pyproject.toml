@@ -1,0 +1,49 @@
+[project]
+name = "rentgraph-server"
+version = "0.1.0"
+description = "RentGraph 合同风险雷达后端"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.141.1",
+  "uvicorn[standard]>=0.52.4",
+  "pydantic>=2.13.5",
+  "pydantic-settings>=2.12.0",
+  "sqlalchemy>=2.0.52",
+  "asyncpg>=0.31.0",
+  "greenlet>=3.1.0",
+  "alembic>=1.19.2",
+  "pdfplumber>=0.11.10",
+  "openai>=3.8.0",
+  "sse-starlette>=3.4.11",
+  "python-multipart>=0.0.32",
+  "pyjwt>=2.13.0",
+  "slowapi>=0.1.10",
+  "structlog>=26.1.0",
+  "python-dotenv>=1.2.3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=9.1.1",
+  "pytest-asyncio>=1.4.0",
+  "httpx>=0.28.1",
+  "ruff>=0.16.6",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

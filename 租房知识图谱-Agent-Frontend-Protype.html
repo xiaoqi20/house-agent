@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentGraph Agent - 对话工作台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+    .fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .msg-enter { animation: msgEnter 0.3s ease-out forwards; }
+    @keyframes msgEnter { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .typing-dot { animation: bounce 1.2s infinite ease-in-out; }
+    .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
+    mark.clause { background: #fef08a; border-radius: 4px; box-shadow: 0 0 0 3px #fef08a; }
+    .risk-item:hover { background: #fafafa; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: {
+        brand: { 50:'#f0f9ff', 100:'#e0f2fe', 400:'#38bdf8', 500:'#0ea5e9', 600:'#0284c7', 700:'#0369a1' },
+        accent: { 50:'#eff6ff', 500:'#3b82f6', 600:'#2563eb' }
+      } } }
+    }
+  </script>
+</head>
+<body class="bg-white text-gray-800 overflow-hidden h-screen flex">
+
+  <!-- Left Sidebar (240px) -->
+  <aside class="w-[240px] bg-gray-50 border-r border-gray-200 flex-col flex-shrink-0 hidden md:flex">
+    <div class="h-16 flex items-center px-5">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-sm">
+          <i class="fas fa-project-diagram text-sm"></i>
+        </div>
+        <span class="font-bold text-[16px] tracking-tight text-gray-900">RentGraph</span>
+        <span class="px-1.5 py-0.5 bg-gray-200 text-gray-600 text-[10px] font-bold rounded uppercase">Beta</span>
+      </div>
+    </div>
+
+    <div class="px-4">
+      <button onclick="location.reload()" class="w-full bg-brand-500 hover:bg-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2">
+        <i class="fas fa-plus text-xs"></i> 新建分析
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto custom-scrollbar px-4 mt-5 space-y-1">
+      <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-900 bg-white border border-gray-200 shadow-sm">
+        <i class="fas fa-comment-dots w-5 text-center text-gray-700"></i> 对话工作台
+      </button>
+      <button onclick="openContract()" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+        <span class="flex items-center gap-3"><i class="fas fa-file-contract w-5 text-center text-gray-400"></i> 我的合同</span>
+        <span class="text-[10px] bg-gray-200 text-gray-600 font-bold px-1.5 py-0.5 rounded">1</span>
+      </button>
+
+      <div class="pt-6 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">最近对话</div>
+      <button class="w-full text-left px-3 py-2 rounded-xl text-[13px] text-gray-600 hover:bg-gray-100 truncate transition-colors">望京合同风险审查</button>
+      <button class="w-full text-left px-3 py-2 rounded-xl text-[13px] text-gray-500 hover:bg-gray-100 truncate transition-colors">押金不退如何处理</button>
+    </div>
+
+    <div class="p-4 border-t border-gray-200 mt-auto">
+      <div class="flex items-center justify-between px-2 py-2.5 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors group">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="relative">
+            <img src="https://ui-avatars.com/api/?name=张三&background=e0f2fe&color=0369a1" alt="User" class="w-9 h-9 rounded-full border border-gray-200 shadow-sm shrink-0">
+            <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-[13px] font-semibold text-gray-900 truncate">张三</div>
+            <div class="text-[11px] text-brand-600 font-medium truncate flex items-center gap-1"><i class="fas fa-crown text-[10px]"></i> Pro 计划</div>
+          </div>
+        </div>
+        <i class="fas fa-ellipsis-v text-gray-400 group-hover:text-gray-600 px-2 transition-colors"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col min-w-0">
+    <header class="h-16 border-b border-gray-100 flex items-center justify-between px-6 shrink-0">
+      <h2 class="text-[15px] font-semibold text-gray-900" id="pageTitle">对话工作台</h2>
+      <div class="flex items-center gap-2 text-xs text-gray-500">
+        <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+        Agent 在线 · 已连接你的合同库
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto custom-scrollbar" id="chatView">
+
+      <!-- Empty state: chat-centered hero -->
+      <div id="emptyState" class="h-full flex flex-col items-center justify-center px-6 -mt-10">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight fade-in" style="animation-delay:.05s">张三，我是你的租房 Agent</h1>
+        <p class="text-sm text-gray-500 mt-3 mb-10 fade-in" style="animation-delay:.1s">上传一份合同，我会抽取条款、扫描风险，并带你定位到原文</p>
+
+        <div id="heroSlot" class="w-full max-w-2xl fade-in" style="animation-delay:.15s"></div>
+
+        <div class="flex flex-wrap justify-center gap-5 mt-8 mb-4 fade-in px-4" style="animation-delay:.2s">
+          <button onclick="startContractReview()" class="w-36 h-32 bg-yellow-50 border border-yellow-200 rounded-2xl shadow-sm hover:shadow-md transform -rotate-6 hover:rotate-0 hover:-translate-y-1.5 transition-all duration-300 p-4 flex flex-col text-left group">
+            <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 mb-auto transition-transform group-hover:scale-110">
+              <i class="fas fa-file-contract text-sm"></i>
+            </div>
+            <span class="text-[13px] font-semibold text-yellow-900 leading-snug">审查刚上传的<br>租赁合同</span>
+          </button>
+          
+          <button onclick="send('违约金条款怎么跟房东谈？')" class="w-36 h-32 bg-purple-50 border border-purple-200 rounded-2xl shadow-sm hover:shadow-md transform rotate-3 hover:rotate-0 hover:-translate-y-1.5 transition-all duration-300 p-4 flex flex-col text-left group mt-3">
+            <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mb-auto transition-transform group-hover:scale-110">
+              <i class="fas fa-comments-dollar text-sm"></i>
+            </div>
+            <span class="text-[13px] font-semibold text-purple-900 leading-snug">违约金条款<br>怎么谈？</span>
+          </button>
+          
+          <button onclick="send('押金不退怎么办？')" class="w-36 h-32 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-sm hover:shadow-md transform -rotate-3 hover:rotate-0 hover:-translate-y-1.5 transition-all duration-300 p-4 flex flex-col text-left group">
+            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 mb-auto transition-transform group-hover:scale-110">
+              <i class="fas fa-shield-alt text-sm"></i>
+            </div>
+            <span class="text-[13px] font-semibold text-emerald-900 leading-snug">押金不退<br>怎么办？</span>
+          </button>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-10"><i class="fas fa-lock mr-1"></i>支持 PDF / Word / 粘贴合同文本 · 你的合同数据仅自己可见</p>
+      </div>
+
+      <!-- Conversation thread -->
+      <div id="thread" class="hidden max-w-3xl mx-auto px-6 py-8 space-y-6"></div>
+    </div>
+
+    <!-- Docked composer (visible in conversation mode) -->
+    <div id="dock" class="hidden border-t border-gray-100 bg-white p-4 shrink-0">
+      <div id="dockSlot" class="max-w-3xl mx-auto"></div>
+      <p class="text-[10px] text-center text-gray-400 mt-2">Agent 基于你的合同图谱回答，内容仅供参考，不构成法律意见</p>
+    </div>
+  </main>
+
+  <!-- Contract drawer -->
+  <div id="overlay" class="hidden fixed inset-0 bg-black/20 z-30" onclick="closeContract()"></div>
+  <aside id="contractDrawer" class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-40 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="h-16 flex items-center justify-between px-5 border-b border-gray-100 shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-500 border border-red-100"><i class="fas fa-file-pdf"></i></div>
+        <div>
+          <div class="text-sm font-semibold text-gray-900">北京市房屋租赁合同（标准版）.pdf</div>
+          <div class="text-[11px] text-gray-500">已解析 18 项条款 · 2.4 MB</div>
+        </div>
+      </div>
+      <button onclick="closeContract()" class="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-400 flex items-center justify-center"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-6 text-[13px] leading-7 text-gray-600 space-y-5" id="contractBody"></div>
+    <div class="p-4 border-t border-gray-100 shrink-0 flex items-center gap-2">
+      <i class="fas fa-highlighter text-amber-500 text-sm"></i>
+      <span class="text-xs text-gray-500">黄色高亮 = Agent 判定的风险条款，点击风险卡片可跳转定位</span>
+    </div>
+  </aside>
+
+  <!-- Shared composer (moved between hero and dock) -->
+  <template id="composerTpl">
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-2 focus-within:border-gray-400 focus-within:shadow-[0_2px_16px_rgba(0,0,0,0.08)] transition-all">
+      <textarea id="chatInput" rows="2" class="w-full bg-transparent resize-none outline-none text-sm p-2 text-gray-800 placeholder-gray-400 custom-scrollbar max-h-40" placeholder="上传合同、或直接问我任何租房问题…" onkeydown="handleEnter(event)"></textarea>
+      <div class="flex justify-between items-center px-1">
+        <div class="flex gap-0.5">
+          <button onclick="startContractReview()" title="上传合同" class="w-8 h-8 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-paperclip text-sm"></i></button>
+          <button class="w-8 h-8 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-image text-sm"></i></button>
+        </div>
+        <button onclick="submitInput()" class="bg-brand-500 hover:bg-brand-600 text-white rounded-xl px-4 py-2 text-[13px] font-medium shadow-sm transition-colors flex items-center gap-1.5">
+          发送 <i class="fas fa-arrow-up text-[10px]"></i>
+        </button>
+      </div>
+    </div>
+  </template>
+
+  <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-xs px-4 py-2.5 rounded-full shadow-lg z-50"></div>
+
+  <script>
+    // ---------- data ----------
+    const RISK_COLORS = { 高: 'bg-red-50 text-red-600 border-red-100', 中: 'bg-amber-50 text-amber-600 border-amber-100' };
+    const RISKS = [
+      { level: '高', clause: 8, title: '违约金过高', desc: '约定为 3 个月租金，显著高于行业惯例与司法实践支持的 1 个月上限' },
+      { level: '高', clause: 6, title: '押金退还条件模糊', desc: '未约定退还时限，且"损坏"无扣款标准，退租时极易扯皮' },
+      { level: '中', clause: 12, title: '自动续约陷阱', desc: '未提前 30 日书面通知即自动续租一年，且租金上浮 5%' },
+    ];
+    const CLAUSES = [
+      [1, '第一条 租赁房屋', '甲方将位于北京市朝阳区望京街道某小区 3 号楼 1202 室房屋出租给乙方居住使用，建筑面积 68.5 平方米。'],
+      [3, '第三条 租赁期限', '租赁期共 12 个月，自 2026 年 9 月 15 日起至 2027 年 9 月 14 日止。'],
+      [4, '第四条 租金', '月租金为人民币 6,500 元，按"押一付三"方式支付，乙方应于每期开始前 7 日支付。'],
+      [6, '第六条 押金', '乙方于签约当日支付房屋租赁押金人民币 6,500 元。租赁期满，房屋及设施无损坏的，甲方退还押金。'],
+      [8, '第八条 违约责任', '任何一方违约的，应向守约方支付违约金，违约金金额为月租金的三倍，并赔偿由此造成的全部损失。'],
+      [10, '第十条 房屋维修', '租赁期内，因乙方使用不当造成的房屋及设施损坏，由乙方负责维修或赔偿。'],
+      [12, '第十二条 续租', '租赁期届满前 30 日内乙方未书面通知甲方不续租的，视为自动续租一年，续租期间租金在上一年度基础上上浮 5%。'],
+    ];
+    const RISK_CLAUSES = new Set([6, 8, 12]);
+
+    const ANSWERS = {
+      违约金: `<p class="font-medium text-gray-900 mb-1 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 已检索合同图谱 · 第 8 条</p>
+        你的合同违约金约定为 <span class="text-red-600 font-medium">3 个月租金（19,500 元）</span>，司法实践中法院通常仅支持实际损失的 30% 上浮，即约 1 个月。<br><br>
+        <b>谈判话术：</b>"我咨询过做法务的朋友，三倍违约金在诉讼里大概率不会被支持，咱们按行业惯例改成一个月，对双方都公平。"`,
+      押金: `<p class="font-medium text-gray-900 mb-1 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 已检索合同图谱 · 第 6 条</p>
+        退押金关键在<b>证据链</b>：① 入住时拍全屋视频并让房东确认；② 退租前 7 日发书面《退租通知》留存记录；③ 交房当天双方签《房屋交接单》。<br><br>
+        若房东无正当理由克扣，可凭合同 + 转账记录向 12345 或住建委投诉，多数情况可全额退回。`,
+    };
+    const DEFAULT_ANSWER = `<p class="font-medium text-gray-900 mb-1 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 已检索合同图谱（2,451 节点）</p>
+      当前合同整体健康度 78 分，主要风险集中在<b>违约与退租</b>两个环节。你可以直接问我任何条款，例如"第十二条是什么意思"，我会引用原文回答。`;
+
+    // ---------- composer ----------
+    const composer = document.getElementById('composerTpl').content.firstElementChild;
+    document.getElementById('heroSlot').appendChild(composer);
+    const input = document.getElementById('chatInput');
+
+    function submitInput() {
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      send(text);
+    }
+    function handleEnter(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitInput(); }
+    }
+
+    // ---------- thread ----------
+    let started = false;
+    function esc(s) { return s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+    function scrollBottom() { const v = document.getElementById('chatView'); v.scrollTop = v.scrollHeight; }
+
+    function beginThread(title) {
+      if (started) return;
+      started = true;
+      document.getElementById('emptyState').classList.add('hidden');
+      document.getElementById('thread').classList.remove('hidden');
+      document.getElementById('dock').classList.remove('hidden');
+      document.getElementById('dockSlot').appendChild(composer);
+      if (title) document.getElementById('pageTitle').innerText = title;
+    }
+
+    function addUserMsg(html) {
+      document.getElementById('thread').insertAdjacentHTML('beforeend', `
+        <div class="flex gap-3 flex-row-reverse msg-enter">
+          <img src="https://ui-avatars.com/api/?name=张三&background=e0f2fe&color=0369a1" class="w-7 h-7 rounded-full border border-gray-200 mt-0.5 shrink-0">
+          <div class="max-w-[85%]">${html}</div>
+        </div>`);
+      scrollBottom();
+    }
+
+    function addAIMsg(html) {
+      const div = document.createElement('div');
+      div.className = 'flex gap-3 msg-enter';
+      div.innerHTML = `
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm"><i class="fas fa-robot text-[10px]"></i></div>
+        <div class="flex-1 min-w-0">${html}</div>`;
+      document.getElementById('thread').appendChild(div);
+      scrollBottom();
+      return div;
+    }
+
+    function addTyping() {
+      return addAIMsg(`
+        <div class="bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3.5 inline-flex items-center gap-1.5" id="typing">
+          <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+          <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+          <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+        </div>`);
+    }
+
+    function send(text) {
+      beginThread('新对话');
+      addUserMsg(`<div class="text-[13px] text-white leading-relaxed bg-brand-500 rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">${esc(text).replace(/\n/g, '<br>')}</div>`);
+      const t = addTyping();
+      setTimeout(() => {
+        t.remove();
+        const key = text.includes('违约金') ? '违约金' : text.includes('押金') ? '押金' : null;
+        addAIMsg(`<div class="text-[13px] text-gray-800 leading-relaxed bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3">${ANSWERS[key] || DEFAULT_ANSWER}</div>`);
+      }, 900);
+    }
+
+    // ---------- contract review demo ----------
+    function startContractReview() {
+      beginThread('望京合同风险审查');
+      addUserMsg(`
+        <div class="bg-white border border-gray-200 rounded-2xl rounded-tr-sm px-3 py-2.5 flex items-center gap-3 shadow-sm">
+          <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-500 border border-red-100 shrink-0"><i class="fas fa-file-pdf"></i></div>
+          <div>
+            <div class="text-[13px] font-medium text-gray-900">北京市房屋租赁合同（标准版）.pdf</div>
+            <div class="text-[11px] text-gray-500">2.4 MB</div>
+          </div>
+        </div>`);
+
+      const msg = addTyping();
+
+      const steps = ['解析文档（5 页 / 2.4 MB）', '抽取 18 项条款 · 3 方当事人 · 6 个时间节点', '匹配风险规则库（42 条规则）'];
+      let i = 0;
+      function render() {
+        const rows = steps.map((s, j) => `
+          <div class="flex items-center gap-2.5 text-[13px] ${j < i ? 'text-green-600' : j === i ? 'text-gray-800' : 'text-gray-300'}">
+            <i class="fas ${j < i ? 'fa-circle-check' : j === i ? 'fa-circle-notch fa-spin' : 'fa-circle'} w-4 text-center"></i> ${s}
+          </div>`).join('');
+        msg.innerHTML = `<div class="bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3.5 space-y-2 font-medium">${rows}</div>`;
+      }
+      render();
+      const tick = setInterval(() => {
+        i++;
+        if (i >= steps.length) { clearInterval(tick); msg.remove(); showRiskReport(); }
+        else render();
+      }, 700);
+    }
+
+    function showRiskReport() {
+      const items = RISKS.map((r, idx) => `
+        <button onclick="openContract(${r.clause})" class="risk-item w-full text-left flex items-start gap-3 px-4 py-3 border-t border-gray-100 transition-colors">
+          <span class="shrink-0 mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded border ${RISK_COLORS[r.level]}">${r.level}风险</span>
+          <span class="flex-1 min-w-0">
+            <span class="text-[13px] font-semibold text-gray-900">${r.title}
+              <span class="text-[11px] font-normal text-gray-400 ml-1">第 ${r.clause} 条</span>
+            </span>
+            <span class="block text-xs text-gray-500 mt-0.5 leading-relaxed">${r.desc}</span>
+          </span>
+          <i class="fas fa-arrow-right text-gray-300 text-xs mt-1.5 shrink-0"></i>
+        </button>`).join('');
+
+      addAIMsg(`
+        <div class="text-[13px] text-gray-800 mb-2">合同解析完成，<span class="text-red-600 font-medium">发现 3 项风险（高 2 / 中 1）</span>，点击任意一条可定位原文：</div>
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-4 py-3 flex items-center justify-between bg-gray-50/80 border-b border-gray-100">
+            <div class="flex items-center gap-2 text-[13px] font-semibold text-gray-900"><i class="fas fa-shield-alt text-brand-600"></i> 风险雷达报告</div>
+            <div class="text-[11px] text-gray-500">合同健康度 <b class="text-amber-600">78</b> / 100</div>
+          </div>
+          ${items}
+          <div class="px-4 py-3 border-t border-gray-100 flex gap-2">
+            <button onclick="copyScript()" id="copyBtn" class="flex-1 bg-brand-500 hover:bg-brand-600 text-white rounded-lg py-2 text-xs font-medium shadow-sm transition-colors"><i class="fas fa-comments mr-1.5"></i>复制谈判话术</button>
+            <button onclick="toast('风险报告 PDF 生成中（演示）')" class="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg py-2 text-xs font-medium transition-colors"><i class="fas fa-file-export mr-1.5"></i>导出报告</button>
+          </div>
+        </div>`);
+    }
+
+    const NEGOTIATION = `建议修改的 3 处条款（发给房东）：\n1. 第 8 条：违约金由"月租金三倍"改为"1 个月租金"；\n2. 第 6 条：补充"租赁期满 15 日内退还押金，房屋损坏按市场价折旧扣款，需提供凭证"；\n3. 第 12 条：删除自动续约条款，改为"续租需双方提前 30 日另行协商签约"。`;
+    function copyScript() {
+      navigator.clipboard?.writeText(NEGOTIATION);
+      const b = document.getElementById('copyBtn');
+      b.innerHTML = '<i class="fas fa-check mr-1.5"></i>已复制，可直接粘贴给房东';
+      toast('谈判话术已复制到剪贴板');
+    }
+
+    // ---------- contract drawer ----------
+    function buildContract() {
+      const body = document.getElementById('contractBody');
+      if (body.dataset.built) return;
+      body.innerHTML = CLAUSES.map(([id, title, text]) => `
+        <div class="${RISK_CLAUSES.has(id) ? 'pl-3 border-l-2 border-amber-300' : ''}">
+          <h4 class="text-sm font-semibold text-gray-900 mb-1">${title}</h4>
+          <p>${RISK_CLAUSES.has(id) ? `<mark class="clause">${text}</mark>` : text}</p>
+          ${RISK_CLAUSES.has(id) ? `<div class="text-[11px] text-amber-600 mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>Agent 标记为风险条款</div>` : ''}
+        </div>
+        <div class="id-anchor" id="cl-${id}"></div>`).join('');
+      body.dataset.built = '1';
+    }
+
+    function openContract(clauseId) {
+      buildContract();
+      document.getElementById('overlay').classList.remove('hidden');
+      const d = document.getElementById('contractDrawer');
+      d.classList.remove('translate-x-full');
+      if (clauseId) {
+        setTimeout(() => {
+          const el = document.getElementById('cl-' + clauseId);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 350);
+      }
+    }
+    function closeContract() {
+      document.getElementById('contractDrawer').classList.add('translate-x-full');
+      document.getElementById('overlay').classList.add('hidden');
+    }
+
+    // ---------- misc ----------
+    let toastTimer;
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.add('hidden'), 2200);
+    }
+  </script>
+</body>
+</html>

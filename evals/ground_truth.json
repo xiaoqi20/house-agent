@@ -1,0 +1,471 @@
+{
+  "corpus": "synthetic",
+  "corpus_note": "模板化合成的真实语料替身；拿到真实脱敏合同后可直接替换 contracts/ 并同步 ground_truth.json",
+  "labeling": "generator-auto",
+  "note": "模板化合成的真实语料替身；拿到真实脱敏合同后可直接替换 contracts/ 并同步 ground_truth.json",
+  "contracts": [
+    {
+      "file": "contracts/contract_01.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "unclear-fees"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 8,
+          "rule_id": "repair-inverted"
+        },
+        {
+          "clause_no": 9,
+          "rule_id": "auto-renewal"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_02.txt",
+      "expected": [
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_03.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "long-prepay"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 9,
+          "rule_id": "auto-renewal"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_04.txt",
+      "expected": [
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_05.txt",
+      "expected": [
+        {
+          "clause_no": 8,
+          "rule_id": "repair-inverted"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_06.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "long-prepay"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 9,
+          "rule_id": "auto-renewal"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_07.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "unclear-fees"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_08.txt",
+      "expected": [
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_09.txt",
+      "expected": [
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 8,
+          "rule_id": "repair-inverted"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_10.txt",
+      "expected": [
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 9,
+          "rule_id": "auto-renewal"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_11.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "unclear-fees"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_12.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "long-prepay"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 8,
+          "rule_id": "repair-inverted"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_13.txt",
+      "expected": [
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 9,
+          "rule_id": "auto-renewal"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_14.txt",
+      "expected": []
+    },
+    {
+      "file": "contracts/contract_15.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "long-prepay"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_16.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "unclear-fees"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 8,
+          "rule_id": "repair-inverted"
+        },
+        {
+          "clause_no": 9,
+          "rule_id": "auto-renewal"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_17.txt",
+      "expected": [
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        },
+        {
+          "clause_no": 9,
+          "rule_id": "auto-renewal"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_18.txt",
+      "expected": [
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 8,
+          "rule_id": "repair-inverted"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_19.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "long-prepay"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-no-deadline"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "deposit-vague-damage"
+        },
+        {
+          "clause_no": 6,
+          "rule_id": "no-handover"
+        },
+        {
+          "clause_no": 7,
+          "rule_id": "over-penalty"
+        },
+        {
+          "clause_no": 9,
+          "rule_id": "auto-renewal"
+        },
+        {
+          "clause_no": 10,
+          "rule_id": "unilateral-termination"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    },
+    {
+      "file": "contracts/contract_20.txt",
+      "expected": [
+        {
+          "clause_no": 4,
+          "rule_id": "unclear-fees"
+        },
+        {
+          "clause_no": 11,
+          "rule_id": "sublease-ban"
+        }
+      ]
+    }
+  ]
+}

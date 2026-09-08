@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentGraph Agent - 登录</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+    .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .node-pulse { animation: nodePulse 3s infinite ease-in-out; }
+    .node-pulse:nth-child(2) { animation-delay: 1s; }
+    .node-pulse:nth-child(3) { animation-delay: 2s; }
+    @keyframes nodePulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.15); opacity: 1; } }
+    .float-card { animation: floatCard 6s infinite ease-in-out; }
+    .float-card:nth-child(2) { animation-delay: 1.5s; }
+    .float-card:nth-child(3) { animation-delay: 3s; }
+    @keyframes floatCard { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    input:focus { outline: none; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: {
+        brand: { 50:'#f0f9ff', 100:'#e0f2fe', 400:'#38bdf8', 500:'#0ea5e9', 600:'#0284c7', 700:'#0369a1' },
+        accent: { 50:'#eff6ff', 500:'#3b82f6', 600:'#2563eb' }
+      } } }
+    }
+  </script>
+</head>
+<body class="bg-white text-gray-800 h-screen flex overflow-hidden">
+
+  <!-- 左侧：产品宣传区 -->
+  <aside class="hidden lg:flex w-[52%] relative flex-col justify-between p-12 overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-accent-600 grid-bg">
+    <!-- 装饰光晕 -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-brand-400/30 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -right-24 w-[28rem] h-[28rem] bg-accent-500/20 rounded-full blur-3xl"></div>
+
+    <!-- 顶部 Logo -->
+    <div class="relative flex items-center gap-2.5 fade-in">
+      <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur border border-white/20 flex items-center justify-center text-white shadow-lg">
+        <i class="fas fa-project-diagram"></i>
+      </div>
+      <span class="font-bold text-lg tracking-tight text-white">RentGraph</span>
+      <span class="px-1.5 py-0.5 bg-white/20 text-white text-[10px] font-bold rounded uppercase">Beta</span>
+    </div>
+
+    <!-- 中部：主标语 + 知识图谱可视化 -->
+    <div class="relative space-y-10">
+      <div class="space-y-4 fade-in">
+        <h1 class="text-4xl xl:text-[42px] font-extrabold text-white leading-tight tracking-tight">
+          让每一份租房合同<br>都被<span class="text-brand-100 underline decoration-brand-300/60 decoration-4 underline-offset-8">智能读懂</span>
+        </h1>
+        <p class="text-brand-100/90 text-[15px] leading-relaxed max-w-md">
+          基于知识图谱与多 Agent 协作，自动审查合同条款、识别风险陷阱、解答租房纠纷，为你的每一次租住保驾护航。
+        </p>
+      </div>
+
+      <!-- 图谱可视化装饰 -->
+      <div class="relative h-44 fade-in">
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 480 176" fill="none">
+          <line x1="90" y1="88" x2="240" y2="40" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <line x1="90" y1="88" x2="240" y2="140" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <line x1="240" y1="40" x2="390" y2="88" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <line x1="240" y1="140" x2="390" y2="88" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        </svg>
+        <div class="node-pulse absolute left-[60px] top-[64px] w-12 h-12 rounded-2xl bg-white/15 backdrop-blur border border-white/25 flex items-center justify-center text-white shadow-lg">
+          <i class="fas fa-file-contract"></i>
+        </div>
+        <div class="node-pulse absolute left-[212px] top-[16px] w-12 h-12 rounded-2xl bg-white/15 backdrop-blur border border-white/25 flex items-center justify-center text-white shadow-lg">
+          <i class="fas fa-scale-balanced"></i>
+        </div>
+        <div class="node-pulse absolute left-[212px] top-[116px] w-12 h-12 rounded-2xl bg-white/15 backdrop-blur border border-white/25 flex items-center justify-center text-white shadow-lg">
+          <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <div class="node-pulse absolute left-[362px] top-[64px] w-12 h-12 rounded-2xl bg-white text-brand-600 flex items-center justify-center shadow-xl">
+          <i class="fas fa-robot"></i>
+        </div>
+      </div>
+
+      <!-- 特性卡片 -->
+      <div class="grid grid-cols-3 gap-3 fade-in">
+        <div class="float-card rounded-2xl bg-white/10 backdrop-blur border border-white/15 p-4">
+          <i class="fas fa-magnifying-glass-chart text-white text-lg mb-2"></i>
+          <div class="text-white text-[13px] font-semibold">合同风险审查</div>
+          <div class="text-brand-100/80 text-[11px] mt-1 leading-relaxed">逐条解析条款，秒级定位风险点</div>
+        </div>
+        <div class="float-card rounded-2xl bg-white/10 backdrop-blur border border-white/15 p-4">
+          <i class="fas fa-comments text-white text-lg mb-2"></i>
+          <div class="text-white text-[13px] font-semibold">租房纠纷问答</div>
+          <div class="text-brand-100/80 text-[11px] mt-1 leading-relaxed">押金、违约、退租，有问必答</div>
+        </div>
+        <div class="float-card rounded-2xl bg-white/10 backdrop-blur border border-white/15 p-4">
+          <i class="fas fa-diagram-project text-white text-lg mb-2"></i>
+          <div class="text-white text-[13px] font-semibold">知识图谱溯源</div>
+          <div class="text-brand-100/80 text-[11px] mt-1 leading-relaxed">法规条款关联，答案有据可查</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部数据 -->
+    <div class="relative flex items-center gap-8 text-white/80 text-xs fade-in">
+      <div><span class="text-white font-bold text-base">50,000+</span> 份合同已分析</div>
+      <div class="w-px h-4 bg-white/20"></div>
+      <div><span class="text-white font-bold text-base">98.6%</span> 风险识别准确率</div>
+      <div class="w-px h-4 bg-white/20"></div>
+      <div><span class="text-white font-bold text-base">300+</span> 条法规图谱节点</div>
+    </div>
+  </aside>
+
+  <!-- 右侧：登录模块 -->
+  <main class="flex-1 flex flex-col min-w-0 bg-white overflow-y-auto custom-scrollbar">
+    <!-- 移动端顶部 Logo -->
+    <div class="lg:hidden flex items-center gap-2 px-6 pt-6">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-sm">
+        <i class="fas fa-project-diagram text-sm"></i>
+      </div>
+      <span class="font-bold text-[16px] tracking-tight text-gray-900">RentGraph</span>
+      <span class="px-1.5 py-0.5 bg-gray-200 text-gray-600 text-[10px] font-bold rounded uppercase">Beta</span>
+    </div>
+
+    <div class="flex-1 flex items-center justify-center px-6 py-10">
+      <div class="w-full max-w-[400px] fade-in">
+        <!-- 标题 -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold text-gray-900 tracking-tight">欢迎回来</h2>
+          <p class="text-sm text-gray-500 mt-2">登录以继续使用 RentGraph Agent</p>
+        </div>
+
+        <!-- 登录方式切换 -->
+        <div class="flex items-center gap-6 border-b border-gray-100 mb-6">
+          <button id="tabSms" onclick="switchTab('sms')" class="pb-3 text-sm font-semibold text-brand-600 border-b-2 border-brand-500 -mb-px transition-colors">验证码登录</button>
+          <button id="tabPwd" onclick="switchTab('pwd')" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent -mb-px transition-colors">密码登录</button>
+        </div>
+
+        <!-- 验证码登录表单 -->
+        <form id="formSms" class="space-y-4" onsubmit="return handleLogin(event)">
+          <div>
+            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">手机号</label>
+            <div class="relative">
+              <i class="fas fa-mobile-screen absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="tel" id="smsPhone" maxlength="11" placeholder="请输入 11 位手机号"
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-shadow">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">短信验证码</label>
+            <div class="flex gap-2">
+              <div class="relative flex-1">
+                <i class="fas fa-shield-halved absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input type="text" id="smsCode" maxlength="6" placeholder="6 位验证码"
+                  class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-shadow">
+              </div>
+              <button type="button" id="btnCode" onclick="sendCode()"
+                class="shrink-0 px-4 py-2.5 rounded-xl border border-brand-200 bg-brand-50 text-brand-600 text-sm font-medium hover:bg-brand-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                获取验证码
+              </button>
+            </div>
+          </div>
+          <button type="submit"
+            class="w-full bg-brand-500 hover:bg-brand-600 text-white py-2.5 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2 !mt-6">
+            <i class="fas fa-arrow-right-to-bracket text-xs"></i> 登录 / 注册
+          </button>
+        </form>
+
+        <!-- 密码登录表单 -->
+        <form id="formPwd" class="space-y-4 hidden" onsubmit="return handleLogin(event)">
+          <div>
+            <label class="block text-[13px] font-medium text-gray-700 mb-1.5">手机号 / 邮箱</label>
+            <div class="relative">
+              <i class="fas fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" id="pwdAccount" placeholder="请输入手机号或邮箱"
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-shadow">
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-[13px] font-medium text-gray-700">密码</label>
+              <a href="#" class="text-xs text-brand-600 hover:text-brand-700 font-medium">忘记密码？</a>
+            </div>
+            <div class="relative">
+              <i class="fas fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="password" id="pwdValue" placeholder="请输入登录密码"
+                class="w-full pl-10 pr-11 py-2.5 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-shadow">
+              <button type="button" onclick="togglePwd()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                <i id="pwdEye" class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
+          </div>
+          <button type="submit"
+            class="w-full bg-brand-500 hover:bg-brand-600 text-white py-2.5 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2 !mt-6">
+            <i class="fas fa-arrow-right-to-bracket text-xs"></i> 登 录
+          </button>
+        </form>
+
+        <!-- 协议 -->
+        <label class="flex items-start gap-2 mt-5 cursor-pointer select-none">
+          <input type="checkbox" id="agree" checked class="mt-0.5 w-3.5 h-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-400">
+          <span class="text-xs text-gray-500 leading-relaxed">
+            我已阅读并同意 <a href="#" class="text-brand-600 hover:underline">《用户服务协议》</a> 和 <a href="#" class="text-brand-600 hover:underline">《隐私政策》</a>
+          </span>
+        </label>
+
+        <!-- 第三方登录 -->
+        <div class="mt-8">
+          <div class="flex items-center gap-3 text-xs text-gray-400">
+            <div class="flex-1 h-px bg-gray-100"></div>
+            其他登录方式
+            <div class="flex-1 h-px bg-gray-100"></div>
+          </div>
+          <div class="flex items-center justify-center gap-4 mt-5">
+            <button class="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-green-600 hover:border-green-200 hover:bg-green-50 transition-colors" title="微信登录">
+              <i class="fab fa-weixin text-lg"></i>
+            </button>
+            <button class="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-brand-600 hover:border-brand-200 hover:bg-brand-50 transition-colors" title="支付宝登录">
+              <i class="fab fa-alipay text-lg"></i>
+            </button>
+            <button class="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:border-gray-300 hover:bg-gray-50 transition-colors" title="Apple 登录">
+              <i class="fab fa-apple text-lg"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="py-4 text-center text-[11px] text-gray-400">
+      © 2026 RentGraph Agent · 让租房更安心
+    </footer>
+  </main>
+
+  <script>
+    // 切换登录方式
+    function switchTab(tab) {
+      const isSms = tab === 'sms';
+      document.getElementById('formSms').classList.toggle('hidden', !isSms);
+      document.getElementById('formPwd').classList.toggle('hidden', isSms);
+      const tabSms = document.getElementById('tabSms');
+      const tabPwd = document.getElementById('tabPwd');
+      const active = ['pb-3','text-sm','font-semibold','text-brand-600','border-b-2','border-brand-500','-mb-px','transition-colors'];
+      const inactive = ['pb-3','text-sm','font-medium','text-gray-500','hover:text-gray-700','border-b-2','border-transparent','-mb-px','transition-colors'];
+      tabSms.className = (isSms ? active : inactive).join(' ');
+      tabPwd.className = (isSms ? inactive : active).join(' ');
+    }
+
+    // 发送验证码（60s 倒计时）
+    function sendCode() {
+      const phone = document.getElementById('smsPhone').value.trim();
+      if (!/^1\d{10}$/.test(phone)) {
+        alert('请输入正确的 11 位手机号');
+        return;
+      }
+      const btn = document.getElementById('btnCode');
+      let sec = 60;
+      btn.disabled = true;
+      btn.textContent = sec + 's 后重发';
+      const timer = setInterval(() => {
+        sec--;
+        if (sec <= 0) {
+          clearInterval(timer);
+          btn.disabled = false;
+          btn.textContent = '重新获取';
+        } else {
+          btn.textContent = sec + 's 后重发';
+        }
+      }, 1000);
+    }
+
+    // 密码可见性切换
+    function togglePwd() {
+      const input = document.getElementById('pwdValue');
+      const eye = document.getElementById('pwdEye');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      eye.className = show ? 'fas fa-eye-slash text-sm' : 'fas fa-eye text-sm';
+    }
+
+    // 提交登录（原型演示）
+    function handleLogin(e) {
+      e.preventDefault();
+      if (!document.getElementById('agree').checked) {
+        alert('请先阅读并同意《用户服务协议》和《隐私政策》');
+        return false;
+      }
+      window.location.href = '租房知识图谱-Agent-Frontend-Protype.html';
+      return false;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,943 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RentGraph API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Healthz",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Healthz Healthz Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts": {
+      "get": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "List Contracts",
+        "operationId": "list_contracts_api_v1_contracts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ContractOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Contracts Api V1 Contracts Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Create Contract",
+        "operationId": "create_contract_api_v1_contracts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/upload": {
+      "post": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Upload Contract",
+        "description": "一期支持 .pdf/.txt（进入分析）与图片（存档，OCR 二期）。文件一律先落 LocalStorage，二期换 OSS。",
+        "operationId": "upload_contract_api_v1_contracts_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_contract_api_v1_contracts_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contract_id}/file": {
+      "get": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Contract File",
+        "description": "附件下载/预览。LocalStorage 直出文件；二期 OSS 改 302 签名 URL（接口位不变）。",
+        "operationId": "contract_file_api_v1_contracts__contract_id__file_get",
+        "parameters": [
+          {
+            "name": "contract_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Contract Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contract_id}": {
+      "get": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Get Contract",
+        "operationId": "get_contract_api_v1_contracts__contract_id__get",
+        "parameters": [
+          {
+            "name": "contract_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Contract Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contract_id}/analyze": {
+      "post": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Analyze Contract",
+        "operationId": "analyze_contract_api_v1_contracts__contract_id__analyze_post",
+        "parameters": [
+          {
+            "name": "contract_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Contract Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contract_id}/text": {
+      "get": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Contract Text",
+        "operationId": "contract_text_api_v1_contracts__contract_id__text_get",
+        "parameters": [
+          {
+            "name": "contract_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Contract Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractTextView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contract_id}/risks": {
+      "get": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Contract Risks",
+        "operationId": "contract_risks_api_v1_contracts__contract_id__risks_get",
+        "parameters": [
+          {
+            "name": "contract_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Contract Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RisksSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chat": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Chat",
+        "operationId": "chat_api_v1_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatReply"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_upload_contract_api_v1_contracts_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_contract_api_v1_contracts_upload_post"
+      },
+      "ChatReply": {
+        "properties": {
+          "cite": {
+            "type": "string",
+            "title": "Cite"
+          },
+          "paras": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Paras"
+          },
+          "cites": {
+            "items": {
+              "$ref": "#/components/schemas/Cite"
+            },
+            "type": "array",
+            "title": "Cites"
+          },
+          "contract_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "rules"
+            ],
+            "title": "Mode",
+            "default": "rules"
+          },
+          "degraded": {
+            "type": "boolean",
+            "title": "Degraded",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "cite",
+          "paras"
+        ],
+        "title": "ChatReply"
+      },
+      "ChatRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "contract_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "ChatRequest"
+      },
+      "Cite": {
+        "properties": {
+          "clause_no": {
+            "type": "integer",
+            "title": "Clause No"
+          },
+          "clause_id": {
+            "type": "integer",
+            "title": "Clause Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "clause_no",
+          "clause_id"
+        ],
+        "title": "Cite",
+        "description": "可点击的条款引用：条号 + 条款 id，前端据此打开抽屉并高亮"
+      },
+      "ClauseRisk": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "level": {
+            "$ref": "#/components/schemas/RiskLevel"
+          },
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "suggestion": {
+            "type": "string",
+            "title": "Suggestion"
+          },
+          "negotiation_script": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Negotiation Script"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "level",
+          "rule_id",
+          "title",
+          "reason",
+          "suggestion"
+        ],
+        "title": "ClauseRisk",
+        "description": "抽屉里一条条款可能命中多条规则（如押金条款），必须全列出来而不是只留最后一条"
+      },
+      "ClauseView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "clause_no": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clause No"
+          },
+          "clause_type": {
+            "type": "string",
+            "title": "Clause Type"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "raw_text": {
+            "type": "string",
+            "title": "Raw Text"
+          },
+          "is_risk": {
+            "type": "boolean",
+            "title": "Is Risk",
+            "default": false
+          },
+          "risks": {
+            "items": {
+              "$ref": "#/components/schemas/ClauseRisk"
+            },
+            "type": "array",
+            "title": "Risks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "clause_no",
+          "clause_type",
+          "title",
+          "raw_text"
+        ],
+        "title": "ClauseView"
+      },
+      "ContractCreate": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 200000,
+            "minLength": 50,
+            "title": "Text",
+            "description": "合同全文（粘贴）"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "ContractCreate"
+      },
+      "ContractOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "storage_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storage Key"
+          },
+          "health_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Score"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "filename",
+          "source_type",
+          "status",
+          "health_score",
+          "error",
+          "created_at"
+        ],
+        "title": "ContractOut"
+      },
+      "ContractStatus": {
+        "type": "string",
+        "enum": [
+          "uploaded",
+          "analyzing",
+          "done",
+          "failed"
+        ],
+        "title": "ContractStatus"
+      },
+      "ContractTextView": {
+        "properties": {
+          "contract_id": {
+            "type": "integer",
+            "title": "Contract Id"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "clauses": {
+            "items": {
+              "$ref": "#/components/schemas/ClauseView"
+            },
+            "type": "array",
+            "title": "Clauses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contract_id",
+          "filename",
+          "clauses"
+        ],
+        "title": "ContractTextView"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "RiskLevel": {
+        "type": "string",
+        "enum": [
+          "high",
+          "medium",
+          "low"
+        ],
+        "title": "RiskLevel"
+      },
+      "RiskView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "level": {
+            "$ref": "#/components/schemas/RiskLevel"
+          },
+          "clause_id": {
+            "type": "integer",
+            "title": "Clause Id"
+          },
+          "clause_no": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clause No"
+          },
+          "clause_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clause Title"
+          },
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "suggestion": {
+            "type": "string",
+            "title": "Suggestion"
+          },
+          "negotiation_script": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Negotiation Script"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "level",
+          "clause_id",
+          "rule_id",
+          "title",
+          "reason",
+          "suggestion"
+        ],
+        "title": "RiskView"
+      },
+      "RisksSummary": {
+        "properties": {
+          "contract_id": {
+            "type": "integer",
+            "title": "Contract Id"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "health_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Score"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "risks": {
+            "items": {
+              "$ref": "#/components/schemas/RiskView"
+            },
+            "type": "array",
+            "title": "Risks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contract_id",
+          "health_score",
+          "counts",
+          "risks"
+        ],
+        "title": "RisksSummary"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

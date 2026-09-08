@@ -1,0 +1,21 @@
+# 系统/编辑器
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# 依赖与构建产物
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+*.tsbuildinfo
+
+# 本地配置与运行期数据（含真实 LLM key）
+.env
+.env.local
+server/uploads/
