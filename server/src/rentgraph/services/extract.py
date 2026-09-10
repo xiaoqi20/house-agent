@@ -43,10 +43,30 @@ _TYPE_KEYS = [
 ]
 
 
+def _party_of(seg: str) -> str | None:
+    if "双方" in seg or "任何一方" in seg:
+        return "双方"
+    if "乙方" in seg:
+        return "乙方"
+    if "甲方" in seg:
+        return "甲方"
+    return None
+
+
 def _classify(seg: str) -> str:
     # 先看条名（标题区），避免"合同解除…押金不退"被押金关键词劫持；再回退全文
     title = seg[:16]
-    for title_key, canon in [("违约责任", "违约金"), ("解除", "解约"), ("押金", "押金"), ("续租", "续租"), ("维修", "维修"), ("转租", "转租"), ("租金", "租金"), ("期限", "租期")]:
+    title_map = [
+        ("违约责任", "违约金"),
+        ("解除", "解约"),
+        ("押金", "押金"),
+        ("续租", "续租"),
+        ("维修", "维修"),
+        ("转租", "转租"),
+        ("租金", "租金"),
+        ("期限", "租期"),
+    ]
+    for title_key, canon in title_map:
         if title_key in title:
             return canon
     for key, canon in _TYPE_KEYS:
@@ -79,7 +99,7 @@ def mock_extract(text: str) -> list[ClauseData]:
                 raw_text=seg,
                 amount=float(amount_m.group(1).replace(",", "").replace("，", "")) if amount_m else None,
                 months=_extract_months(seg),
-                party_liable="双方" if ("双方" in seg or "任何一方" in seg) else ("乙方" if "乙方" in seg else ("甲方" if "甲方" in seg else None)),
+                party_liable=_party_of(seg),
             )
         )
     return out

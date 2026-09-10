@@ -1,13 +1,14 @@
+# 一期默认用 SQLite（零依赖）。需要 Postgres（选型文档生产口径）时：
+#   docker compose up -d db && export DATABASE_URL=postgresql+asyncpg://rentgraph:rentgraph@localhost:5433/rentgraph
 services:
   db:
     image: postgres:16-alpine
-    container_name: rentgraph-pg
-    ports:
-      - "5433:5432"
     environment:
       POSTGRES_USER: rentgraph
       POSTGRES_PASSWORD: rentgraph
       POSTGRES_DB: rentgraph
+    ports:
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

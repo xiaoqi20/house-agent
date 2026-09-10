@@ -103,7 +103,15 @@ async def run_analysis(db: AsyncSession, contract_id: int) -> AsyncIterator[dict
         await db.commit()
         yield _progress(2, f"{rules_label} · 命中 {len(risks)} 项", "done")
 
-        yield _ev("done", {"contract_id": contract_id, "clause_count": len(rows), "risk_count": len(risks), "health_score": score})
+        yield _ev(
+        "done",
+        {
+            "contract_id": contract_id,
+            "clause_count": len(rows),
+            "risk_count": len(risks),
+            "health_score": score,
+        },
+    )
     except _Failed as exc:
         contract.status = ContractStatus.failed
         contract.error = str(exc)

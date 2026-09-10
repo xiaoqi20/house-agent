@@ -69,7 +69,7 @@ async def main():
 
     results = await asyncio.gather(*(process(i) for i in items))
 
-    for name, expected, predicted, clauses, lat in results:
+    for name, expected, predicted, _clauses, lat in results:
         tp += len(expected & predicted)
         fp += len(predicted - expected)
         fn += len(expected - predicted)

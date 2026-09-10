@@ -16,6 +16,14 @@ class Storage(ABC):
     def local_path(self, key: str) -> Path | None:
         """OSS 实现返回 None（届时 /file 端点改 302 到签名 URL）。"""
 
+    def read(self, key: str) -> bytes:
+        """读回原始文件（解析用）；OSS 实现改为下载。"""
+
+        path = self.local_path(key)
+        if path is None:
+            raise FileNotFoundError(key)
+        return path.read_bytes()
+
 
 class LocalStorage(Storage):
     def save(self, filename: str, data: bytes) -> str:

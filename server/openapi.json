@@ -2,11 +2,14 @@
   "openapi": "3.1.0",
   "info": {
     "title": "RentGraph API",
-    "version": "0.1.0"
+    "version": "1.1.0"
   },
   "paths": {
     "/healthz": {
       "get": {
+        "tags": [
+          "health"
+        ],
         "summary": "Healthz",
         "operationId": "healthz_healthz_get",
         "responses": {
@@ -25,24 +28,409 @@
         }
       }
     },
-    "/api/v1/contracts": {
+    "/api/v1/workspaces": {
+      "post": {
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Create Workspace",
+        "operationId": "create_workspace_api_v1_workspaces_post",
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}": {
       "get": {
         "tags": [
-          "contracts"
+          "workspaces"
         ],
-        "summary": "List Contracts",
-        "operationId": "list_contracts_api_v1_contracts_get",
+        "summary": "Get Workspace",
+        "operationId": "get_workspace_api_v1_workspaces__workspace_id__get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ContractOut"
-                  },
+                  "$ref": "#/components/schemas/WorkspaceOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/ctx": {
+      "put": {
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Set Context",
+        "operationId": "set_context_api_v1_workspaces__workspace_id__ctx_put",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CtxUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/import-batches": {
+      "post": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Create Batch",
+        "operationId": "create_batch_api_v1_import_batches_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/import-batches/upload": {
+      "post": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Upload Batch",
+        "operationId": "upload_batch_api_v1_import_batches_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_batch_api_v1_import_batches_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/import-batches/{batch_id}": {
+      "get": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Get Batch",
+        "operationId": "get_batch_api_v1_import_batches__batch_id__get",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/import-batches/{batch_id}/confirm": {
+      "post": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Confirm Batch",
+        "operationId": "confirm_batch_api_v1_import_batches__batch_id__confirm_post",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchConfirm"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchConfirmOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/import-batches/{batch_id}/cancel": {
+      "post": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Cancel Batch",
+        "operationId": "cancel_batch_api_v1_import_batches__batch_id__cancel_post",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/houses": {
+      "get": {
+        "tags": [
+          "houses"
+        ],
+        "summary": "List Houses",
+        "operationId": "list_houses_api_v1_houses_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "active",
+                "dropped",
+                "all"
+              ],
+              "type": "string",
+              "default": "active",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "array",
-                  "title": "Response List Contracts Api V1 Contracts Get"
+                  "items": {
+                    "$ref": "#/components/schemas/HouseOut"
+                  },
+                  "title": "Response List Houses Api V1 Houses Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -51,19 +439,30 @@
       },
       "post": {
         "tags": [
-          "contracts"
+          "houses"
         ],
-        "summary": "Create Contract",
-        "operationId": "create_contract_api_v1_contracts_post",
+        "summary": "Create House",
+        "operationId": "create_house_api_v1_houses_post",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ContractCreate"
+                "$ref": "#/components/schemas/HouseCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -71,7 +470,499 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContractOut"
+                  "$ref": "#/components/schemas/HouseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/houses/{house_id}": {
+      "get": {
+        "tags": [
+          "houses"
+        ],
+        "summary": "Get House",
+        "operationId": "get_house_api_v1_houses__house_id__get",
+        "parameters": [
+          {
+            "name": "house_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "House Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "houses"
+        ],
+        "summary": "Patch House",
+        "operationId": "patch_house_api_v1_houses__house_id__patch",
+        "parameters": [
+          {
+            "name": "house_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "House Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HousePatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "houses"
+        ],
+        "summary": "Delete House",
+        "operationId": "delete_house_api_v1_houses__house_id__delete",
+        "parameters": [
+          {
+            "name": "house_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "House Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/houses/{house_id}/evidence": {
+      "post": {
+        "tags": [
+          "houses"
+        ],
+        "summary": "Add Evidence",
+        "description": "补充字段证据（用户手动修正字段后可记录来源，保证可追溯）。",
+        "operationId": "add_evidence_api_v1_houses__house_id__evidence_post",
+        "parameters": [
+          {
+            "name": "house_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "House Id"
+            }
+          },
+          {
+            "name": "field",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Field"
+            }
+          },
+          {
+            "name": "snippet",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Snippet"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/preferences": {
+      "get": {
+        "tags": [
+          "preferences"
+        ],
+        "summary": "Get Preferences",
+        "operationId": "get_preferences_api_v1_preferences_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferenceOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "preferences"
+        ],
+        "summary": "Put Preferences",
+        "operationId": "put_preferences_api_v1_preferences_put",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferenceIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferenceOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recommendations": {
+      "post": {
+        "tags": [
+          "recommendations"
+        ],
+        "summary": "Create Recommendation",
+        "operationId": "create_recommendation_api_v1_recommendations_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationCreated"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "recommendations"
+        ],
+        "summary": "List Recommendations",
+        "operationId": "list_recommendations_api_v1_recommendations_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecommendationOut"
+                  },
+                  "title": "Response List Recommendations Api V1 Recommendations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recommendations/{recommendation_id}": {
+      "get": {
+        "tags": [
+          "recommendations"
+        ],
+        "summary": "Get Recommendation",
+        "operationId": "get_recommendation_api_v1_recommendations__recommendation_id__get",
+        "parameters": [
+          {
+            "name": "recommendation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Recommendation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts": {
+      "post": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Create Contract",
+        "operationId": "create_contract_api_v1_contracts_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Contract Api V1 Contracts Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "List Contracts",
+        "operationId": "list_contracts_api_v1_contracts_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractOut"
+                  },
+                  "title": "Response List Contracts Api V1 Contracts Get"
                 }
               }
             }
@@ -95,7 +986,6 @@
           "contracts"
         ],
         "summary": "Upload Contract",
-        "description": "一期支持 .pdf/.txt（进入分析）与图片（存档，OCR 二期）。文件一律先落 LocalStorage，二期换 OSS。",
         "operationId": "upload_contract_api_v1_contracts_upload_post",
         "requestBody": {
           "content": {
@@ -108,54 +998,15 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "202": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContractOut"
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Upload Contract Api V1 Contracts Upload Post"
                 }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/contracts/{contract_id}/file": {
-      "get": {
-        "tags": [
-          "contracts"
-        ],
-        "summary": "Contract File",
-        "description": "附件下载/预览。LocalStorage 直出文件；二期 OSS 改 302 签名 URL（接口位不变）。",
-        "operationId": "contract_file_api_v1_contracts__contract_id__file_get",
-        "parameters": [
-          {
-            "name": "contract_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Contract Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
               }
             }
           },
@@ -185,7 +1036,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
+              "type": "string",
               "title": "Contract Id"
             }
           }
@@ -212,34 +1063,27 @@
             }
           }
         }
-      }
-    },
-    "/api/v1/contracts/{contract_id}/analyze": {
-      "post": {
+      },
+      "delete": {
         "tags": [
           "contracts"
         ],
-        "summary": "Analyze Contract",
-        "operationId": "analyze_contract_api_v1_contracts__contract_id__analyze_post",
+        "summary": "Delete Contract",
+        "operationId": "delete_contract_api_v1_contracts__contract_id__delete",
         "parameters": [
           {
             "name": "contract_id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
+              "type": "string",
               "title": "Contract Id"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -267,7 +1111,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
+              "type": "string",
               "title": "Contract Id"
             }
           }
@@ -296,20 +1140,20 @@
         }
       }
     },
-    "/api/v1/contracts/{contract_id}/risks": {
+    "/api/v1/contracts/{contract_id}/file": {
       "get": {
         "tags": [
           "contracts"
         ],
-        "summary": "Contract Risks",
-        "operationId": "contract_risks_api_v1_contracts__contract_id__risks_get",
+        "summary": "Contract File",
+        "operationId": "contract_file_api_v1_contracts__contract_id__file_get",
         "parameters": [
           {
             "name": "contract_id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
+              "type": "string",
               "title": "Contract Id"
             }
           }
@@ -319,8 +1163,50 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RisksSummary"
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{contract_id}/retry": {
+      "post": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Retry Contract",
+        "operationId": "retry_contract_api_v1_contracts__contract_id__retry_post",
+        "parameters": [
+          {
+            "name": "contract_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Contract Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Retry Contract Api V1 Contracts  Contract Id  Retry Post"
                 }
               }
             }
@@ -338,30 +1224,448 @@
         }
       }
     },
-    "/api/v1/chat": {
+    "/api/v1/verifications": {
       "post": {
         "tags": [
-          "chat"
+          "verifications"
         ],
-        "summary": "Chat",
-        "operationId": "chat_api_v1_chat_post",
+        "summary": "Create Verification",
+        "operationId": "create_verification_api_v1_verifications_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ChatRequest"
+                "$ref": "#/components/schemas/VerificationCreate"
               }
             }
           },
           "required": true
         },
         "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Verification Api V1 Verifications Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/verifications/{verification_id}": {
+      "get": {
+        "tags": [
+          "verifications"
+        ],
+        "summary": "Get Verification",
+        "operationId": "get_verification_api_v1_verifications__verification_id__get",
+        "parameters": [
+          {
+            "name": "verification_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Verification Id"
+            }
+          }
+        ],
+        "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ChatReply"
+                  "$ref": "#/components/schemas/VerificationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations": {
+      "post": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "Create Conversation",
+        "operationId": "create_conversation_api_v1_conversations_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "List Conversations",
+        "operationId": "list_conversations_api_v1_conversations_get",
+        "parameters": [
+          {
+            "name": "workspace_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Workspace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConversationOut"
+                  },
+                  "title": "Response List Conversations Api V1 Conversations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/messages": {
+      "get": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "List Messages",
+        "operationId": "list_messages_api_v1_conversations__conversation_id__messages_get",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MessageOut"
+                  },
+                  "title": "Response List Messages Api V1 Conversations  Conversation Id  Messages Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "Post Message",
+        "operationId": "post_message_api_v1_conversations__conversation_id__messages_post",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageCreated"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}": {
+      "delete": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "Delete Conversation",
+        "operationId": "delete_conversation_api_v1_conversations__conversation_id__delete",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Get Run",
+        "operationId": "get_run_api_v1_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/events": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Run Events",
+        "description": "SSE：支持 Last-Event-ID 重连；运行已结束后回放并收尾。\n\n用 FastAPI 内置 SSE 编码（`fastapi.sse`）：自动补 `Cache-Control: no-cache`、\n`X-Accel-Buffering: no` 与 15s 心跳注释（等价于原先 sse-starlette 的 ping=15）。",
+        "operationId": "run_events_api_v1_runs__run_id__events_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string"
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "retry": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/cancel": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Cancel Run",
+        "operationId": "cancel_run_api_v1_runs__run_id__cancel_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
                 }
               }
             }
@@ -382,108 +1686,32 @@
   },
   "components": {
     "schemas": {
-      "Body_upload_contract_api_v1_contracts_upload_post": {
+      "BatchConfirm": {
         "properties": {
-          "file": {
-            "type": "string",
-            "contentMediaType": "application/octet-stream",
-            "title": "File"
-          }
-        },
-        "type": "object",
-        "required": [
-          "file"
-        ],
-        "title": "Body_upload_contract_api_v1_contracts_upload_post"
-      },
-      "ChatReply": {
-        "properties": {
-          "cite": {
-            "type": "string",
-            "title": "Cite"
-          },
-          "paras": {
+          "houses": {
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/HouseConfirm"
             },
             "type": "array",
-            "title": "Paras"
-          },
-          "cites": {
+            "title": "Houses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "houses"
+        ],
+        "title": "BatchConfirm"
+      },
+      "BatchConfirmOut": {
+        "properties": {
+          "houses": {
             "items": {
-              "$ref": "#/components/schemas/Cite"
+              "$ref": "#/components/schemas/HouseOut"
             },
             "type": "array",
-            "title": "Cites"
+            "title": "Houses"
           },
-          "contract_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Contract Id"
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "llm",
-              "rules"
-            ],
-            "title": "Mode",
-            "default": "rules"
-          },
-          "degraded": {
-            "type": "boolean",
-            "title": "Degraded",
-            "default": false
-          }
-        },
-        "type": "object",
-        "required": [
-          "cite",
-          "paras"
-        ],
-        "title": "ChatReply"
-      },
-      "ChatRequest": {
-        "properties": {
-          "question": {
-            "type": "string",
-            "title": "Question"
-          },
-          "contract_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Contract Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "question"
-        ],
-        "title": "ChatRequest"
-      },
-      "Cite": {
-        "properties": {
-          "clause_no": {
-            "type": "integer",
-            "title": "Clause No"
-          },
-          "clause_id": {
-            "type": "integer",
-            "title": "Clause Id"
-          },
-          "title": {
+          "run_id": {
             "anyOf": [
               {
                 "type": "string"
@@ -492,25 +1720,296 @@
                 "type": "null"
               }
             ],
-            "title": "Title"
+            "title": "Run Id"
+          },
+          "hint": {
+            "type": "string",
+            "title": "Hint",
+            "default": ""
           }
         },
         "type": "object",
         "required": [
-          "clause_no",
-          "clause_id"
+          "houses"
         ],
-        "title": "Cite",
-        "description": "可点击的条款引用：条号 + 条款 id，前端据此打开抽屉并高亮"
+        "title": "BatchConfirmOut"
+      },
+      "BatchCreate": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "title": "Workspace Id"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "paste",
+              "manual",
+              "batch",
+              "link"
+            ],
+            "title": "Source",
+            "default": "paste"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "default": ""
+          },
+          "link_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workspace_id"
+        ],
+        "title": "BatchCreate"
+      },
+      "BatchOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workspace_id": {
+            "type": "string",
+            "title": "Workspace Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "link_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link Url"
+          },
+          "raw_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Text"
+          },
+          "drafts": {
+            "items": {
+              "$ref": "#/components/schemas/HouseDraft"
+            },
+            "type": "array",
+            "title": "Drafts"
+          },
+          "house_count": {
+            "type": "integer",
+            "title": "House Count",
+            "default": 0
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "workspace_id",
+          "source",
+          "status"
+        ],
+        "title": "BatchOut"
+      },
+      "Body_upload_batch_api_v1_import_batches_upload_post": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "title": "Workspace Id"
+          },
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workspace_id",
+          "file"
+        ],
+        "title": "Body_upload_batch_api_v1_import_batches_upload_post"
+      },
+      "Body_upload_contract_api_v1_contracts_upload_post": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "title": "Workspace Id"
+          },
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "house_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "House Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workspace_id",
+          "file"
+        ],
+        "title": "Body_upload_contract_api_v1_contracts_upload_post"
+      },
+      "CitationOut": {
+        "properties": {
+          "clause_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clause Id"
+          },
+          "clause_no": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clause No"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "default": ""
+          },
+          "contract_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "char_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Char Start"
+          },
+          "char_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Char End"
+          }
+        },
+        "type": "object",
+        "title": "CitationOut"
       },
       "ClauseRisk": {
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "title": "Id"
           },
           "level": {
-            "$ref": "#/components/schemas/RiskLevel"
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Level"
           },
           "rule_id": {
             "type": "string",
@@ -549,13 +2048,12 @@
           "reason",
           "suggestion"
         ],
-        "title": "ClauseRisk",
-        "description": "抽屉里一条条款可能命中多条规则（如押金条款），必须全列出来而不是只留最后一条"
+        "title": "ClauseRisk"
       },
       "ClauseView": {
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "title": "Id"
           },
           "clause_no": {
@@ -571,15 +2069,51 @@
           },
           "clause_type": {
             "type": "string",
-            "title": "Clause Type"
+            "title": "Clause Type",
+            "default": "其他"
           },
           "title": {
             "type": "string",
-            "title": "Title"
+            "title": "Title",
+            "default": ""
           },
           "raw_text": {
             "type": "string",
-            "title": "Raw Text"
+            "title": "Raw Text",
+            "default": ""
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "char_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Char Start"
+          },
+          "char_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Char End"
           },
           "is_risk": {
             "type": "boolean",
@@ -596,24 +2130,17 @@
         },
         "type": "object",
         "required": [
-          "id",
-          "clause_no",
-          "clause_type",
-          "title",
-          "raw_text"
+          "id"
         ],
         "title": "ClauseView"
       },
       "ContractCreate": {
         "properties": {
-          "text": {
+          "workspace_id": {
             "type": "string",
-            "maxLength": 200000,
-            "minLength": 50,
-            "title": "Text",
-            "description": "合同全文（粘贴）"
+            "title": "Workspace Id"
           },
-          "filename": {
+          "house_id": {
             "anyOf": [
               {
                 "type": "string"
@@ -622,11 +2149,30 @@
                 "type": "null"
               }
             ],
-            "title": "Filename"
+            "title": "House Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Text",
+            "description": "合同全文（粘贴）"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
           }
         },
         "type": "object",
         "required": [
+          "workspace_id",
           "text"
         ],
         "title": "ContractCreate"
@@ -634,28 +2180,47 @@
       "ContractOut": {
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "title": "Id"
           },
-          "filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Filename"
-          },
-          "source_type": {
+          "no": {
             "type": "string",
-            "title": "Source Type"
+            "title": "No"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "time": {
+            "type": "string",
+            "title": "Time"
           },
           "status": {
-            "$ref": "#/components/schemas/ContractStatus"
+            "type": "string",
+            "enum": [
+              "uploaded",
+              "parsing",
+              "analyzing",
+              "done",
+              "failed"
+            ],
+            "title": "Status"
           },
-          "storage_key": {
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          },
+          "size": {
+            "type": "string",
+            "title": "Size",
+            "default": ""
+          },
+          "bound_house_id": {
             "anyOf": [
               {
                 "type": "string"
@@ -664,7 +2229,46 @@
                 "type": "null"
               }
             ],
-            "title": "Storage Key"
+            "title": "Bound House Id"
+          },
+          "clauses_list": {
+            "items": {
+              "prefixItems": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array",
+              "maxItems": 3,
+              "minItems": 3
+            },
+            "type": "array",
+            "title": "Clauses List"
+          },
+          "risk_clauses": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Risk Clauses"
+          },
+          "negotiation": {
+            "type": "string",
+            "title": "Negotiation",
+            "default": ""
           },
           "health_score": {
             "anyOf": [
@@ -677,49 +2281,40 @@
             ],
             "title": "Health Score"
           },
-          "error": {
+          "page_count": {
+            "type": "integer",
+            "title": "Page Count",
+            "default": 0
+          },
+          "created_at": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Error"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
             "title": "Created At"
           }
         },
         "type": "object",
         "required": [
           "id",
-          "filename",
-          "source_type",
-          "status",
-          "health_score",
-          "error",
-          "created_at"
+          "no",
+          "name",
+          "source",
+          "time",
+          "status"
         ],
-        "title": "ContractOut"
-      },
-      "ContractStatus": {
-        "type": "string",
-        "enum": [
-          "uploaded",
-          "analyzing",
-          "done",
-          "failed"
-        ],
-        "title": "ContractStatus"
+        "title": "ContractOut",
+        "description": "与前端 web/src/types.ts 的 Contract 同构（clauses_list 为 [条号, 标题, 原文] 元组）。"
       },
       "ContractTextView": {
         "properties": {
           "contract_id": {
-            "type": "integer",
+            "type": "string",
             "title": "Contract Id"
           },
           "filename": {
@@ -744,10 +2339,164 @@
         "type": "object",
         "required": [
           "contract_id",
-          "filename",
           "clauses"
         ],
         "title": "ContractTextView"
+      },
+      "ConversationCreate": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "title": "Workspace Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "default": "新对话"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workspace_id"
+        ],
+        "title": "ConversationCreate"
+      },
+      "ConversationOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workspace_id": {
+            "type": "string",
+            "title": "Workspace Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "message_count": {
+            "type": "integer",
+            "title": "Message Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "workspace_id",
+          "title"
+        ],
+        "title": "ConversationOut"
+      },
+      "CtxUpdate": {
+        "properties": {
+          "house_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "House Id"
+          },
+          "contract_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          }
+        },
+        "type": "object",
+        "title": "CtxUpdate",
+        "description": "当前上下文：主房源 0/1 个 + 可选合同 0/1 个（PRD §9.1）。"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "机器可读错误码"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "给用户看的原因"
+          },
+          "hint": {
+            "type": "string",
+            "title": "Hint",
+            "description": "可执行的重试/替代动作",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody",
+        "description": "统一错误体：前端按 code 决定引导文案（如 NO_TEXT_LAYER → 提示粘贴）。"
+      },
+      "ExplanationOut": {
+        "properties": {
+          "why": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Why"
+          },
+          "tradeoffs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tradeoffs"
+          },
+          "risks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Risks"
+          },
+          "todos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Todos"
+          },
+          "next": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Next"
+          }
+        },
+        "type": "object",
+        "title": "ExplanationOut"
       },
       "HTTPValidationError": {
         "properties": {
@@ -762,29 +2511,24 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
-      "RiskLevel": {
-        "type": "string",
-        "enum": [
-          "high",
-          "medium",
-          "low"
-        ],
-        "title": "RiskLevel"
-      },
-      "RiskView": {
+      "HouseConfirm": {
         "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Id"
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
           },
-          "level": {
-            "$ref": "#/components/schemas/RiskLevel"
+          "region": {
+            "type": "string",
+            "title": "Region",
+            "default": ""
           },
-          "clause_id": {
-            "type": "integer",
-            "title": "Clause Id"
+          "address": {
+            "type": "string",
+            "title": "Address",
+            "default": ""
           },
-          "clause_no": {
+          "rent": {
             "anyOf": [
               {
                 "type": "integer"
@@ -793,9 +2537,9 @@
                 "type": "null"
               }
             ],
-            "title": "Clause No"
+            "title": "Rent"
           },
-          "clause_title": {
+          "deposit": {
             "anyOf": [
               {
                 "type": "string"
@@ -804,25 +2548,180 @@
                 "type": "null"
               }
             ],
-            "title": "Clause Title"
+            "title": "Deposit"
           },
-          "rule_id": {
+          "agency_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agency Fee"
+          },
+          "property_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Fee"
+          },
+          "property_bear": {
             "type": "string",
-            "title": "Rule Id"
+            "title": "Property Bear",
+            "default": ""
           },
-          "title": {
+          "net_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Fee"
+          },
+          "other_fee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Fee"
+          },
+          "area": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "layout": {
             "type": "string",
-            "title": "Title"
+            "title": "Layout",
+            "default": ""
           },
-          "reason": {
+          "floor": {
             "type": "string",
-            "title": "Reason"
+            "title": "Floor",
+            "default": ""
           },
-          "suggestion": {
+          "orientation": {
             "type": "string",
-            "title": "Suggestion"
+            "title": "Orientation",
+            "default": ""
           },
-          "negotiation_script": {
+          "bathroom": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bathroom"
+          },
+          "lighting": {
+            "type": "string",
+            "title": "Lighting",
+            "default": ""
+          },
+          "furniture": {
+            "type": "string",
+            "title": "Furniture",
+            "default": ""
+          },
+          "commute_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commute Min"
+          },
+          "commute_mode": {
+            "type": "string",
+            "title": "Commute Mode",
+            "default": "地铁"
+          },
+          "metro": {
+            "type": "string",
+            "title": "Metro",
+            "default": ""
+          },
+          "nearby": {
+            "type": "string",
+            "title": "Nearby",
+            "default": ""
+          },
+          "pet": {
+            "type": "string",
+            "title": "Pet",
+            "default": ""
+          },
+          "shared": {
+            "type": "boolean",
+            "title": "Shared",
+            "default": false
+          },
+          "sublet": {
+            "type": "string",
+            "title": "Sublet",
+            "default": ""
+          },
+          "max_people": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max People"
+          },
+          "lease_req": {
+            "type": "string",
+            "title": "Lease Req",
+            "default": ""
+          },
+          "available": {
+            "type": "string",
+            "title": "Available",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "link_url": {
+            "type": "string",
+            "title": "Link Url",
+            "default": ""
+          },
+          "draft_id": {
             "anyOf": [
               {
                 "type": "string"
@@ -831,28 +2730,890 @@
                 "type": "null"
               }
             ],
-            "title": "Negotiation Script"
+            "title": "Draft Id"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "paste",
+              "manual",
+              "batch",
+              "file-xlsx",
+              "file-docx",
+              "file-txt",
+              "link"
+            ],
+            "title": "Source",
+            "default": "paste"
+          },
+          "raw": {
+            "type": "string",
+            "title": "Raw",
+            "default": ""
+          },
+          "evidence": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Evidence"
+          },
+          "verify": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Verify"
+          },
+          "todos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Todos"
+          }
+        },
+        "type": "object",
+        "title": "HouseConfirm",
+        "description": "用户在字段确认面板改过后的值。"
+      },
+      "HouseCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "region": {
+            "type": "string",
+            "title": "Region",
+            "default": ""
+          },
+          "address": {
+            "type": "string",
+            "title": "Address",
+            "default": ""
+          },
+          "rent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rent"
+          },
+          "deposit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit"
+          },
+          "agency_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agency Fee"
+          },
+          "property_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Fee"
+          },
+          "property_bear": {
+            "type": "string",
+            "title": "Property Bear",
+            "default": ""
+          },
+          "net_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Fee"
+          },
+          "other_fee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Fee"
+          },
+          "area": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "layout": {
+            "type": "string",
+            "title": "Layout",
+            "default": ""
+          },
+          "floor": {
+            "type": "string",
+            "title": "Floor",
+            "default": ""
+          },
+          "orientation": {
+            "type": "string",
+            "title": "Orientation",
+            "default": ""
+          },
+          "bathroom": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bathroom"
+          },
+          "lighting": {
+            "type": "string",
+            "title": "Lighting",
+            "default": ""
+          },
+          "furniture": {
+            "type": "string",
+            "title": "Furniture",
+            "default": ""
+          },
+          "commute_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commute Min"
+          },
+          "commute_mode": {
+            "type": "string",
+            "title": "Commute Mode",
+            "default": "地铁"
+          },
+          "metro": {
+            "type": "string",
+            "title": "Metro",
+            "default": ""
+          },
+          "nearby": {
+            "type": "string",
+            "title": "Nearby",
+            "default": ""
+          },
+          "pet": {
+            "type": "string",
+            "title": "Pet",
+            "default": ""
+          },
+          "shared": {
+            "type": "boolean",
+            "title": "Shared",
+            "default": false
+          },
+          "sublet": {
+            "type": "string",
+            "title": "Sublet",
+            "default": ""
+          },
+          "max_people": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max People"
+          },
+          "lease_req": {
+            "type": "string",
+            "title": "Lease Req",
+            "default": ""
+          },
+          "available": {
+            "type": "string",
+            "title": "Available",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "link_url": {
+            "type": "string",
+            "title": "Link Url",
+            "default": ""
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "paste",
+              "manual",
+              "batch",
+              "file-xlsx",
+              "file-docx",
+              "file-txt",
+              "link"
+            ],
+            "title": "Source",
+            "default": "manual"
+          },
+          "raw": {
+            "type": "string",
+            "title": "Raw",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "HouseCreate"
+      },
+      "HouseDraft": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "region": {
+            "type": "string",
+            "title": "Region",
+            "default": ""
+          },
+          "address": {
+            "type": "string",
+            "title": "Address",
+            "default": ""
+          },
+          "rent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rent"
+          },
+          "deposit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit"
+          },
+          "agency_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agency Fee"
+          },
+          "property_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Fee"
+          },
+          "property_bear": {
+            "type": "string",
+            "title": "Property Bear",
+            "default": ""
+          },
+          "net_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Fee"
+          },
+          "other_fee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Fee"
+          },
+          "area": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "layout": {
+            "type": "string",
+            "title": "Layout",
+            "default": ""
+          },
+          "floor": {
+            "type": "string",
+            "title": "Floor",
+            "default": ""
+          },
+          "orientation": {
+            "type": "string",
+            "title": "Orientation",
+            "default": ""
+          },
+          "bathroom": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bathroom"
+          },
+          "lighting": {
+            "type": "string",
+            "title": "Lighting",
+            "default": ""
+          },
+          "furniture": {
+            "type": "string",
+            "title": "Furniture",
+            "default": ""
+          },
+          "commute_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commute Min"
+          },
+          "commute_mode": {
+            "type": "string",
+            "title": "Commute Mode",
+            "default": "地铁"
+          },
+          "metro": {
+            "type": "string",
+            "title": "Metro",
+            "default": ""
+          },
+          "nearby": {
+            "type": "string",
+            "title": "Nearby",
+            "default": ""
+          },
+          "pet": {
+            "type": "string",
+            "title": "Pet",
+            "default": ""
+          },
+          "shared": {
+            "type": "boolean",
+            "title": "Shared",
+            "default": false
+          },
+          "sublet": {
+            "type": "string",
+            "title": "Sublet",
+            "default": ""
+          },
+          "max_people": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max People"
+          },
+          "lease_req": {
+            "type": "string",
+            "title": "Lease Req",
+            "default": ""
+          },
+          "available": {
+            "type": "string",
+            "title": "Available",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "link_url": {
+            "type": "string",
+            "title": "Link Url",
+            "default": ""
+          },
+          "draft_id": {
+            "type": "string",
+            "title": "Draft Id"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "paste",
+              "manual",
+              "batch",
+              "file-xlsx",
+              "file-docx",
+              "file-txt",
+              "link"
+            ],
+            "title": "Source",
+            "default": "paste"
+          },
+          "raw": {
+            "type": "string",
+            "title": "Raw",
+            "default": ""
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "default": 0.0
+          },
+          "evidence": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Evidence",
+            "description": "字段 → 原文片段"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing",
+            "description": "缺失/待确认字段中文名"
+          },
+          "duplicate_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duplicate Of",
+            "description": "疑似与已有候选重复时的房源 id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "draft_id"
+        ],
+        "title": "HouseDraft",
+        "description": "AI 提取结果（未经用户确认，禁止进入推荐）。"
+      },
+      "HouseOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "region": {
+            "type": "string",
+            "title": "Region",
+            "default": ""
+          },
+          "address": {
+            "type": "string",
+            "title": "Address",
+            "default": ""
+          },
+          "rent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rent"
+          },
+          "deposit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit"
+          },
+          "agency_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agency Fee"
+          },
+          "property_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Fee"
+          },
+          "property_bear": {
+            "type": "string",
+            "title": "Property Bear",
+            "default": ""
+          },
+          "net_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Fee"
+          },
+          "other_fee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Fee"
+          },
+          "area": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "layout": {
+            "type": "string",
+            "title": "Layout",
+            "default": ""
+          },
+          "floor": {
+            "type": "string",
+            "title": "Floor",
+            "default": ""
+          },
+          "orientation": {
+            "type": "string",
+            "title": "Orientation",
+            "default": ""
+          },
+          "bathroom": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bathroom"
+          },
+          "lighting": {
+            "type": "string",
+            "title": "Lighting",
+            "default": ""
+          },
+          "furniture": {
+            "type": "string",
+            "title": "Furniture",
+            "default": ""
+          },
+          "commute_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commute Min"
+          },
+          "commute_mode": {
+            "type": "string",
+            "title": "Commute Mode",
+            "default": "地铁"
+          },
+          "metro": {
+            "type": "string",
+            "title": "Metro",
+            "default": ""
+          },
+          "nearby": {
+            "type": "string",
+            "title": "Nearby",
+            "default": ""
+          },
+          "pet": {
+            "type": "string",
+            "title": "Pet",
+            "default": ""
+          },
+          "shared": {
+            "type": "boolean",
+            "title": "Shared",
+            "default": false
+          },
+          "sublet": {
+            "type": "string",
+            "title": "Sublet",
+            "default": ""
+          },
+          "max_people": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max People"
+          },
+          "lease_req": {
+            "type": "string",
+            "title": "Lease Req",
+            "default": ""
+          },
+          "available": {
+            "type": "string",
+            "title": "Available",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          },
+          "link_url": {
+            "type": "string",
+            "title": "Link Url",
+            "default": ""
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "no": {
+            "type": "string",
+            "title": "No"
+          },
+          "batch_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "dropped"
+            ],
+            "title": "Status",
+            "default": "active"
+          },
+          "drop_reason": {
+            "type": "string",
+            "title": "Drop Reason",
+            "default": ""
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "paste",
+              "manual",
+              "batch",
+              "file-xlsx",
+              "file-docx",
+              "file-txt",
+              "link"
+            ],
+            "title": "Source",
+            "default": "paste"
+          },
+          "raw": {
+            "type": "string",
+            "title": "Raw",
+            "default": ""
+          },
+          "visits": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Visits"
+          },
+          "todos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Todos"
+          },
+          "verify": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Verify"
+          },
+          "contract_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          },
+          "source_label": {
+            "type": "string",
+            "title": "Source Label",
+            "default": ""
+          },
+          "completeness": {
+            "type": "integer",
+            "title": "Completeness",
+            "default": 0
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing"
+          },
+          "evidence": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Evidence"
           }
         },
         "type": "object",
         "required": [
           "id",
-          "level",
-          "clause_id",
-          "rule_id",
-          "title",
-          "reason",
-          "suggestion"
+          "no"
         ],
-        "title": "RiskView"
+        "title": "HouseOut"
       },
-      "RisksSummary": {
+      "HousePatch": {
         "properties": {
-          "contract_id": {
-            "type": "integer",
-            "title": "Contract Id"
-          },
-          "filename": {
+          "name": {
             "anyOf": [
               {
                 "type": "string"
@@ -861,9 +3622,31 @@
                 "type": "null"
               }
             ],
-            "title": "Filename"
+            "title": "Name"
           },
-          "health_score": {
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "rent": {
             "anyOf": [
               {
                 "type": "integer"
@@ -872,31 +3655,859 @@
                 "type": "null"
               }
             ],
-            "title": "Health Score"
+            "title": "Rent"
           },
-          "counts": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "type": "object",
-            "title": "Counts"
+          "deposit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit"
           },
-          "risks": {
-            "items": {
-              "$ref": "#/components/schemas/RiskView"
-            },
-            "type": "array",
-            "title": "Risks"
+          "agency_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agency Fee"
+          },
+          "property_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Fee"
+          },
+          "property_bear": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Bear"
+          },
+          "net_fee": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Fee"
+          },
+          "other_fee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Fee"
+          },
+          "area": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "layout": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Layout"
+          },
+          "floor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Floor"
+          },
+          "orientation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orientation"
+          },
+          "bathroom": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bathroom"
+          },
+          "lighting": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lighting"
+          },
+          "furniture": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Furniture"
+          },
+          "commute_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commute Min"
+          },
+          "commute_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commute Mode"
+          },
+          "metro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metro"
+          },
+          "nearby": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nearby"
+          },
+          "pet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pet"
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared"
+          },
+          "sublet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sublet"
+          },
+          "max_people": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max People"
+          },
+          "lease_req": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Req"
+          },
+          "available": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "link_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link Url"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "dropped"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "drop_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drop Reason"
+          },
+          "todos": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Todos"
+          },
+          "visits": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visits"
+          },
+          "verify": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verify"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "HousePatch",
+        "description": "局部更新：只允许改业务字段 / 备注 / 状态 / 清单。"
+      },
+      "MessageCreate": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "house_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "House Id"
+          },
+          "contract_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
           }
         },
         "type": "object",
         "required": [
-          "contract_id",
-          "health_score",
-          "counts",
-          "risks"
+          "text"
         ],
-        "title": "RisksSummary"
+        "title": "MessageCreate"
+      },
+      "MessageCreated": {
+        "properties": {
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message_id",
+          "run_id"
+        ],
+        "title": "MessageCreated"
+      },
+      "MessageOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "ai"
+            ],
+            "title": "Role",
+            "default": "user"
+          },
+          "content": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Content"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/CitationOut"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "MessageOut"
+      },
+      "PreferenceIn": {
+        "properties": {
+          "budget": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget",
+            "description": "硬约束：月租上限（元）"
+          },
+          "commute": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 600.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commute",
+            "description": "硬约束：通勤上限（分钟）"
+          },
+          "need_bathroom": {
+            "type": "boolean",
+            "title": "Need Bathroom",
+            "default": false
+          },
+          "allow_shared": {
+            "type": "boolean",
+            "title": "Allow Shared",
+            "default": true
+          },
+          "soft": {
+            "$ref": "#/components/schemas/SoftPrefs"
+          }
+        },
+        "type": "object",
+        "title": "PreferenceIn"
+      },
+      "PreferenceOut": {
+        "properties": {
+          "budget": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget",
+            "description": "硬约束：月租上限（元）"
+          },
+          "commute": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 600.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commute",
+            "description": "硬约束：通勤上限（分钟）"
+          },
+          "need_bathroom": {
+            "type": "boolean",
+            "title": "Need Bathroom",
+            "default": false
+          },
+          "allow_shared": {
+            "type": "boolean",
+            "title": "Allow Shared",
+            "default": true
+          },
+          "soft": {
+            "$ref": "#/components/schemas/SoftPrefs"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "title": "PreferenceOut"
+      },
+      "RankItemOut": {
+        "properties": {
+          "house_id": {
+            "type": "string",
+            "title": "House Id"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "monthly_cost": {
+            "type": "integer",
+            "title": "Monthly Cost"
+          },
+          "monthly_cost_unknown": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Monthly Cost Unknown"
+          },
+          "one_time_cost": {
+            "type": "integer",
+            "title": "One Time Cost"
+          },
+          "one_time_label": {
+            "type": "string",
+            "title": "One Time Label",
+            "default": ""
+          },
+          "hard_violations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Hard Violations"
+          },
+          "soft_hits": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Soft Hits"
+          },
+          "soft_miss": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Soft Miss"
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "优先考虑",
+              "可作为备选",
+              "不建议"
+            ],
+            "title": "Verdict",
+            "default": "可作为备选"
+          },
+          "comparable": {
+            "type": "boolean",
+            "title": "Comparable",
+            "default": true
+          },
+          "tie_break_note": {
+            "type": "string",
+            "title": "Tie Break Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "house_id",
+          "rank",
+          "monthly_cost",
+          "one_time_cost"
+        ],
+        "title": "RankItemOut"
+      },
+      "RecommendationCreate": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "title": "Workspace Id"
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "mix",
+              "budget",
+              "commute"
+            ],
+            "title": "View",
+            "default": "mix"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workspace_id"
+        ],
+        "title": "RecommendationCreate"
+      },
+      "RecommendationCreated": {
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation_id",
+          "run_id"
+        ],
+        "title": "RecommendationCreated"
+      },
+      "RecommendationOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "prefs_version": {
+            "type": "integer",
+            "title": "Prefs Version",
+            "default": 1
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "mix",
+              "budget",
+              "commute"
+            ],
+            "title": "View",
+            "default": "mix"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "snapshot": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Snapshot",
+            "description": "{houses:[HouseOut], prefs:PreferenceOut}"
+          },
+          "views": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ViewRanking"
+            },
+            "type": "object",
+            "title": "Views"
+          },
+          "explanation": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ExplanationOut"
+            },
+            "type": "object",
+            "title": "Explanation"
+          },
+          "about": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "About",
+            "description": "硬约束/软偏好/缺失字段说明"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "RecommendationOut"
+      },
+      "RunOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "interrupted",
+              "done",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "default": "queued"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          },
+          "progress": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Progress"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind"
+        ],
+        "title": "RunOut"
+      },
+      "SoftPrefs": {
+        "properties": {
+          "south": {
+            "type": "boolean",
+            "title": "South",
+            "default": false
+          },
+          "light": {
+            "type": "boolean",
+            "title": "Light",
+            "default": false
+          },
+          "high_floor": {
+            "type": "boolean",
+            "title": "High Floor",
+            "default": false
+          },
+          "big_area": {
+            "type": "boolean",
+            "title": "Big Area",
+            "default": false
+          },
+          "flex_pay": {
+            "type": "boolean",
+            "title": "Flex Pay",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "SoftPrefs"
       },
       "ValidationError": {
         "properties": {
@@ -937,6 +4548,327 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VerificationCreate": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "title": "Workspace Id"
+          },
+          "house_id": {
+            "type": "string",
+            "title": "House Id"
+          },
+          "contract_id": {
+            "type": "string",
+            "title": "Contract Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workspace_id",
+          "house_id",
+          "contract_id"
+        ],
+        "title": "VerificationCreate"
+      },
+      "VerificationItemOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "claim": {
+            "type": "string",
+            "title": "Claim"
+          },
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "anchor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor"
+          },
+          "clause_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clause Id"
+          },
+          "clause_no": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clause No"
+          },
+          "clause_text": {
+            "type": "string",
+            "title": "Clause Text",
+            "default": ""
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "char_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Char Start"
+          },
+          "char_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Char End"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "一致",
+              "冲突",
+              "未约定",
+              "无法判断"
+            ],
+            "title": "Result",
+            "default": "无法判断"
+          },
+          "advice": {
+            "type": "string",
+            "title": "Advice",
+            "default": ""
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Severity"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "claim",
+          "field"
+        ],
+        "title": "VerificationItemOut"
+      },
+      "VerificationOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "house_id": {
+            "type": "string",
+            "title": "House Id"
+          },
+          "contract_id": {
+            "type": "string",
+            "title": "Contract Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "done",
+              "failed"
+            ],
+            "title": "Status",
+            "default": "running"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Summary"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationItemOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "negotiation": {
+            "type": "string",
+            "title": "Negotiation",
+            "default": ""
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "house_id",
+          "contract_id"
+        ],
+        "title": "VerificationOut"
+      },
+      "ViewRanking": {
+        "properties": {
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Order",
+            "description": "house_id 顺序"
+          },
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RankItemOut"
+            },
+            "type": "object",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "title": "ViewRanking"
+      },
+      "WorkspaceOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "house_count": {
+            "type": "integer",
+            "title": "House Count",
+            "default": 0
+          },
+          "contract_count": {
+            "type": "integer",
+            "title": "Contract Count",
+            "default": 0
+          },
+          "ctx_house_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ctx House Id"
+          },
+          "ctx_contract_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ctx Contract Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "created_at",
+          "expires_at"
+        ],
+        "title": "WorkspaceOut"
       }
     }
   }

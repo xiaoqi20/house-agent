@@ -10,11 +10,20 @@ dependencies = [
   "pydantic-settings>=2.12.0",
   "sqlalchemy>=2.0.52",
   "asyncpg>=0.31.0",
+  "aiosqlite>=0.21.0",
   "greenlet>=3.1.0",
+  "langchain>=1.4.0",
+  "langchain-openai>=1.6.1",
+  "langgraph>=1.2.11",
+  "langgraph-checkpoint-sqlite>=3.1.2",
+  "redis>=8.1.0",
+  "arq>=0.28.0",
+  "python-docx>=1.2.0",
+  "openpyxl>=3.1.5",
+  "xlrd>=2.0.2",
   "alembic>=1.19.2",
   "pdfplumber>=0.11.10",
   "openai>=3.8.0",
-  "sse-starlette>=3.4.11",
   "python-multipart>=0.0.32",
   "pyjwt>=2.13.0",
   "slowapi>=0.1.10",
@@ -42,8 +51,15 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.ruff]
-line-length = 110
+line-length = 120
 target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# 验收脚本与提示词里是中文长句（房源/合同原文、prompt 模板），行宽限制无意义
+"scripts/acceptance_v11.py" = ["E501"]
+"src/rentgraph/services/llm/prompts.py" = ["E501"]
+"src/rentgraph/services/llm/mock.py" = ["E501"]
+"tests/test_llm_contracts.py" = ["E501"]

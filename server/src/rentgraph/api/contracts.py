@@ -1,182 +1,194 @@
+"""合同：粘贴 / 上传 → 解析 → 条款抽取 + 风险规则（流程 B 的输入）。"""
+
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from fastapi.responses import FileResponse
-from sse_starlette.sse import EventSourceResponse
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from ..config import settings
 from ..db import get_db
-from ..models import Contract, ContractStatus, Risk, RiskLevel
-from ..schemas.contract import ContractCreate, ContractOut, ContractTextView, RiskView, RisksSummary
-from ..services import ingest
-from ..services.analyze import run_analysis
+from ..errors import AppError
+from ..models import Clause, Contract, uid
+from ..schemas.contract import ContractCreate, ContractOut, ContractTextView
+from ..services.convert import clause_view, contract_out
+from ..services.flows import run_contract_analysis
+from ..services.flows._common import create_run, launch
 from ..services.storage import storage
+from .deps import http_error, load_contract, load_workspace
 
 router = APIRouter(prefix="/contracts", tags=["contracts"])
 
-Db = Annotated[AsyncSession, Depends(get_db)]
-MAX_BYTES = settings.max_upload_mb * 1024 * 1024
-UPLOAD_KINDS = {".pdf": "pdf", ".txt": "txt", ".png": "image", ".jpg": "image", ".jpeg": "image", ".webp": "image"}
+MIN_TEXT_CHARS = 200
+DOC_EXTS = {".pdf", ".txt", ".docx", ".md", ".csv"}
+IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
 
 
-@router.post("", response_model=ContractOut, status_code=201)
-async def create_contract(payload: ContractCreate, db: Db) -> Contract:
-    text = payload.text.strip()
-    if not text:
-        raise HTTPException(422, "合同文本为空")
-    contract = Contract(filename=payload.filename, source_type="paste", raw_text=text)
-    db.add(contract)
+def _size_label(size: int) -> str:
+    if size >= 1024 * 1024:
+        return f"{size / 1024 / 1024:.1f} MB"
+    if size >= 1024:
+        return f"{size / 1024:.0f} KB"
+    return f"{size} B"
+
+
+async def _next_no(db: AsyncSession, workspace_id: str) -> str:
+    count = (
+        await db.execute(select(func.count()).select_from(Contract).where(Contract.workspace_id == workspace_id))
+    ).scalar_one()
+    return f"C{count + 1}"
+
+
+async def _start_analysis(db: AsyncSession, contract: Contract) -> str:
+    run = await create_run(
+        "contract",
+        workspace_id=contract.workspace_id,
+        thread_id=contract.id,
+        house_id=contract.house_id,
+        contract_id=contract.id,
+    )
+    contract.status = "parsing"
     await db.commit()
-    await db.refresh(contract)
-    return contract
+    launch(run, lambda ctx: run_contract_analysis(ctx, contract.id))
+    return run.id
 
 
-@router.post("/upload", response_model=ContractOut, status_code=201)
-async def upload_contract(file: UploadFile, db: Db) -> Contract:
-    """一期支持 .pdf/.txt（进入分析）与图片（存档，OCR 二期）。文件一律先落 LocalStorage，二期换 OSS。"""
-    name = file.filename or "contract"
-    ext = Path(name).suffix.lower()
-    if ext not in UPLOAD_KINDS:
-        raise HTTPException(415, f"一期支持 PDF / TXT / 图片（{', '.join(sorted(UPLOAD_KINDS))}），Word 在二期")
-    data = await file.read(MAX_BYTES + 1)
-    if len(data) > MAX_BYTES:
-        raise HTTPException(413, f"文件超过 {settings.max_upload_mb}MB 限制")
-
-    key = storage.save(name, data)
-    kind = UPLOAD_KINDS[ext]
-    if kind == "image":
-        contract = Contract(
-            filename=name,
-            source_type="image",
-            raw_text="",
-            storage_key=key,
-            status=ContractStatus.uploaded,
-            error="图片已存档。拍照/扫描件识别（OCR）二期上线，当前请上传带文字层的 PDF 或直接粘贴文本。",
+@router.post("", response_model=dict, status_code=202)
+async def create_contract(
+    payload: ContractCreate, db: Annotated[AsyncSession, Depends(get_db)]
+) -> dict:
+    workspace = await load_workspace(db, payload.workspace_id)
+    text = (payload.text or "").strip()
+    if len(text) < MIN_TEXT_CHARS:
+        raise http_error(
+            AppError("TEXT_TOO_SHORT", f"合同文本仅 {len(text)} 字，少于 {MIN_TEXT_CHARS} 字", "请粘贴完整合同正文")
         )
-    else:
-        try:
-            text_ = ingest.extract_pdf(data) if kind == "pdf" else ingest.extract_txt(data)
-        except ingest.NoTextLayer as exc:
-            raise HTTPException(
-                422, {"code": "NO_TEXT_LAYER", "message": "未能提取到文字层（疑似扫描件），请改用粘贴文本或等待二期 OCR"}
-            ) from exc
-        except ingest.TextTooShort as exc:
-            raise HTTPException(
-                422, {"code": "TEXT_TOO_SHORT", "message": f"正文过短（{exc}），请上传完整合同或直接粘贴文本"}
-            ) from exc
-        contract = Contract(filename=name, source_type=kind, raw_text=text_, storage_key=key)
+    contract = Contract(
+        id=uid(),
+        workspace_id=workspace.id,
+        house_id=payload.house_id,
+        no=await _next_no(db, workspace.id),
+        name=payload.name or "粘贴的合同文本",
+        filename=None,
+        source_type="paste",
+        size_label=f"{len(text)} 字",
+        raw_text=text,
+    )
     db.add(contract)
     await db.commit()
     await db.refresh(contract)
-    return contract
+    run_id = await _start_analysis(db, contract)
+    return {"contract_id": contract.id, "run_id": run_id}
 
 
-@router.get("/{contract_id}/file")
-async def contract_file(contract_id: int, db: Db):
-    """附件下载/预览。LocalStorage 直出文件；二期 OSS 改 302 签名 URL（接口位不变）。"""
-    contract = await db.get(Contract, contract_id)
-    if contract is None or not contract.storage_key:
-        raise HTTPException(404, "文件不存在")
-    path = storage.local_path(contract.storage_key)
-    if path is None:
-        raise HTTPException(404, "文件不存在")
-    return FileResponse(path, filename=contract.filename)
+@router.post("/upload", response_model=dict, status_code=202)
+async def upload_contract(
+    workspace_id: Annotated[str, Form()],
+    file: Annotated[UploadFile, File()],
+    house_id: Annotated[str | None, Form()] = None,
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> dict:
+    workspace = await load_workspace(db, workspace_id)
+    filename = file.filename or "contract.pdf"
+    ext = Path(filename).suffix.lower()
+    if ext not in DOC_EXTS | IMAGE_EXTS:
+        raise http_error(
+            AppError(
+                "UNSUPPORTED_FORMAT",
+                f"暂不支持 {ext or '该'} 格式",
+                "支持 PDF / Word(.docx) / 文本 / 图片（图片仅存档，暂不做 OCR）",
+            )
+        )
+    data = await file.read()
+    if len(data) > settings.max_upload_mb * 1024 * 1024:
+        raise http_error(AppError("INVALID_STATE", f"文件超过 {settings.max_upload_mb}MB 上限"))
+    source_type = "image" if ext in IMAGE_EXTS else ext.lstrip(".")
+    key = storage.save(filename, data)
+    contract = Contract(
+        id=uid(),
+        workspace_id=workspace.id,
+        house_id=house_id,
+        no=await _next_no(db, workspace.id),
+        name=filename,
+        filename=filename,
+        source_type=source_type,
+        size_label=_size_label(len(data)),
+        storage_key=key,
+    )
+    db.add(contract)
+    await db.commit()
+    await db.refresh(contract)
+    run_id = await _start_analysis(db, contract)
+    return {"contract_id": contract.id, "run_id": run_id}
 
 
 @router.get("", response_model=list[ContractOut])
-async def list_contracts(db: Db) -> list[Contract]:
-    result = await db.execute(select(Contract).order_by(Contract.id.desc()).limit(50))
-    return list(result.scalars().all())
+async def list_contracts(workspace_id: str, db: Annotated[AsyncSession, Depends(get_db)]) -> list[ContractOut]:
+    await load_workspace(db, workspace_id)
+    rows = list(
+        (
+            await db.execute(
+                select(Contract).where(Contract.workspace_id == workspace_id).order_by(Contract.created_at.desc())
+            )
+        ).scalars()
+    )
+    out: list[ContractOut] = []
+    for row in rows:
+        await db.refresh(row, attribute_names=["clauses"])
+        out.append(contract_out(row))
+    return out
 
 
 @router.get("/{contract_id}", response_model=ContractOut)
-async def get_contract(contract_id: int, db: Db) -> Contract:
-    contract = await db.get(Contract, contract_id)
-    if contract is None:
-        raise HTTPException(404, "合同不存在")
-    return contract
-
-
-@router.post("/{contract_id}/analyze")
-async def analyze_contract(contract_id: int, db: Db) -> EventSourceResponse:
-    if await db.get(Contract, contract_id) is None:
-        raise HTTPException(404, "合同不存在")
-    return EventSourceResponse(run_analysis(db, contract_id))
+async def get_contract(contract_id: str, db: Annotated[AsyncSession, Depends(get_db)]) -> ContractOut:
+    contract = await load_contract(db, contract_id)
+    await db.refresh(contract, attribute_names=["clauses", "risks"])
+    return contract_out(contract)
 
 
 @router.get("/{contract_id}/text", response_model=ContractTextView)
-async def contract_text(contract_id: int, db: Db) -> ContractTextView:
-    result = await db.execute(
-        select(Contract).where(Contract.id == contract_id).options(selectinload(Contract.clauses), selectinload(Contract.risks))
+async def contract_text(contract_id: str, db: Annotated[AsyncSession, Depends(get_db)]) -> ContractTextView:
+    contract = await load_contract(db, contract_id)
+    rows = list(
+        (
+            await db.execute(select(Clause).where(Clause.contract_id == contract.id).order_by(Clause.clause_no))
+        ).scalars()
     )
-    contract = result.scalar_one_or_none()
-    if contract is None:
-        raise HTTPException(404, "合同不存在")
-    order = {"high": 0, "medium": 1, "low": 2}
-    risks_by_clause: dict[int, list[Risk]] = {}
-    for r in contract.risks:
-        risks_by_clause.setdefault(r.clause_id, []).append(r)
-    views = []
-    for c in sorted(contract.clauses, key=lambda x: (x.clause_no is None, x.clause_no or 0)):
-        rs = sorted(risks_by_clause.get(c.id, []), key=lambda r: order[r.level.value])
-        views.append(
-            {
-                "id": c.id,
-                "clause_no": c.clause_no,
-                "clause_type": c.clause_type,
-                "title": c.title,
-                "raw_text": c.raw_text,
-                "is_risk": bool(rs),
-                "risks": [
-                    {
-                        "id": r.id,
-                        "level": r.level.value,
-                        "rule_id": r.rule_id,
-                        "title": r.title,
-                        "reason": r.reason,
-                        "suggestion": r.suggestion,
-                        "negotiation_script": r.negotiation_script,
-                    }
-                    for r in rs
-                ],
-            }
-        )
-    return ContractTextView(contract_id=contract_id, filename=contract.filename, clauses=views)
-
-
-@router.get("/{contract_id}/risks", response_model=RisksSummary)
-async def contract_risks(contract_id: int, db: Db) -> RisksSummary:
-    result = await db.execute(
-        select(Contract).where(Contract.id == contract_id).options(selectinload(Contract.risks), selectinload(Contract.clauses))
-    )
-    contract = result.scalar_one_or_none()
-    if contract is None:
-        raise HTTPException(404, "合同不存在")
-    clause_no = {c.id: c.clause_no for c in contract.clauses}
-    clause_title = {c.id: c.title for c in contract.clauses}
-    order = {"high": 0, "medium": 1, "low": 2}
-    risks = sorted(contract.risks, key=lambda r: order[r.level.value])
-    fields = ("id", "level", "clause_id", "rule_id", "title", "reason", "suggestion", "negotiation_script")
-    views = [
-        RiskView.model_validate(
-            {
-                **{f: getattr(r, f) for f in fields},
-                "clause_no": clause_no.get(r.clause_id),
-                "clause_title": clause_title.get(r.clause_id),
-            }
-        )
-        for r in risks
-    ]
-    counts = {lv.value: sum(1 for r in risks if r.level.value == lv.value) for lv in RiskLevel}
-    return RisksSummary(
-        contract_id=contract_id,
+    for row in rows:
+        await db.refresh(row, attribute_names=["risks"])
+    return ContractTextView(
+        contract_id=contract.id,
         filename=contract.filename,
-        health_score=contract.health_score,
-        counts=counts,
-        risks=views,
+        clauses=[clause_view(row) for row in rows],
     )
 
+
+@router.get("/{contract_id}/file")
+async def contract_file(contract_id: str, db: Annotated[AsyncSession, Depends(get_db)]) -> FileResponse:
+    contract = await load_contract(db, contract_id)
+    if not contract.storage_key:
+        raise http_error(AppError("NOT_FOUND", "该合同是粘贴文本，没有原始文件"))
+    path = storage.local_path(contract.storage_key)
+    if path is None:
+        raise http_error(AppError("NOT_FOUND", "原始文件已被清理"))
+    return FileResponse(path, filename=contract.filename or path.name)
+
+
+@router.post("/{contract_id}/retry", response_model=dict, status_code=202)
+async def retry_contract(contract_id: str, db: Annotated[AsyncSession, Depends(get_db)]) -> dict:
+    contract = await load_contract(db, contract_id)
+    if contract.source_type in IMAGE_EXTS or contract.source_type == "image":
+        raise http_error(AppError("OCR_UNSUPPORTED", "图片/扫描件暂不支持 OCR", "请粘贴合同文本或上传文字版 PDF"))
+    run_id = await _start_analysis(db, contract)
+    return {"contract_id": contract.id, "run_id": run_id}
+
+
+@router.delete("/{contract_id}", status_code=204)
+async def delete_contract(contract_id: str, db: Annotated[AsyncSession, Depends(get_db)]) -> None:
+    contract = await load_contract(db, contract_id)
+    await db.delete(contract)
+    await db.commit()
