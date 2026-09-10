@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RentGraph Agent - 对话工作台</title>
+  <title>RentGraph Agent - 租房决策工作台</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -13,377 +13,2404 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
-    .fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .msg-enter { animation: msgEnter 0.3s ease-out forwards; }
-    @keyframes msgEnter { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .msg-enter { animation: msgEnter 0.25s ease-out both; }
+    @keyframes msgEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .typing-dot { animation: bounce 1.2s infinite ease-in-out; }
     .typing-dot:nth-child(2) { animation-delay: 0.15s; }
     .typing-dot:nth-child(3) { animation-delay: 0.3s; }
     @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
     mark.clause { background: #fef08a; border-radius: 4px; box-shadow: 0 0 0 3px #fef08a; }
-    .risk-item:hover { background: #fafafa; }
+    mark.raw { background: #e0f2fe; border-radius: 3px; padding: 0 2px; }
+    .ai-msg .msg-actions { opacity: 0; transition: opacity .15s; }
+    .ai-msg:hover .msg-actions { opacity: 1; }
+    .chat-item .chat-ops { opacity: 0; transition: opacity .15s; }
+    .chat-item:hover .chat-ops { opacity: 1; }
+    .cursor-blink::after { content: '▍'; color: #9ca3af; animation: blink 0.9s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .nav-item.active { background: #fff; border-color: #e5e7eb; box-shadow: 0 1px 2px rgba(0,0,0,.04); color: #111827; }
+    .cite-chip { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 500; color: #0284c7; background: #f0f9ff; border: 1px solid #e0f2fe; border-radius: 6px; padding: 1px 7px; margin: 0 2px; cursor: pointer; transition: all .15s; vertical-align: 1px; }
+    .cite-chip:hover { background: #e0f2fe; }
+    .upload-bar { transition: width .18s linear; }
+    .imp-tab.active { color: #0284c7; border-color: #0ea5e9; }
+    .verify-row:hover { background: #fafafa; }
+    .soft-tag.on { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+    .soft-tag:not(.on) { background: #fff; border-color: #e5e7eb; color: #6b7280; }
   </style>
   <script>
     tailwind.config = {
       theme: { extend: { colors: {
-        brand: { 50:'#f0f9ff', 100:'#e0f2fe', 400:'#38bdf8', 500:'#0ea5e9', 600:'#0284c7', 700:'#0369a1' },
-        accent: { 50:'#eff6ff', 500:'#3b82f6', 600:'#2563eb' }
+        brand: { 50:'#f0f9ff', 100:'#e0f2fe', 400:'#38bdf8', 500:'#0ea5e9', 600:'#0284c7', 700:'#0369a1' }
       } } }
     }
   </script>
 </head>
 <body class="bg-white text-gray-800 overflow-hidden h-screen flex">
 
-  <!-- Left Sidebar (240px) -->
-  <aside class="w-[240px] bg-gray-50 border-r border-gray-200 flex-col flex-shrink-0 hidden md:flex">
-    <div class="h-16 flex items-center px-5">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-sm">
-          <i class="fas fa-project-diagram text-sm"></i>
+  <!-- ============ Left Sidebar ============ -->
+  <aside class="w-[260px] bg-[#f7f7f8] border-r border-gray-200/80 flex-col flex-shrink-0 hidden md:flex">
+    <div class="h-14 flex items-center justify-between px-4 shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-sm">
+          <i class="fas fa-house-signal text-[11px]"></i>
         </div>
-        <span class="font-bold text-[16px] tracking-tight text-gray-900">RentGraph</span>
-        <span class="px-1.5 py-0.5 bg-gray-200 text-gray-600 text-[10px] font-bold rounded uppercase">Beta</span>
+        <span class="font-semibold text-[15px] tracking-tight text-gray-900">RentGraph</span>
+        <span class="px-1.5 py-0.5 bg-gray-200/80 text-gray-500 text-[10px] font-semibold rounded">Beta</span>
       </div>
     </div>
 
-    <div class="px-4">
-      <button onclick="location.reload()" class="w-full bg-brand-500 hover:bg-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2">
-        <i class="fas fa-plus text-xs"></i> 新建分析
+    <div class="px-3 pt-1">
+      <button onclick="newChat()" class="w-full bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm text-gray-800 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all flex items-center gap-2.5">
+        <i class="fas fa-plus text-xs text-gray-500"></i> 新对话
+        <span class="ml-auto text-[10px] text-gray-400 border border-gray-200 rounded px-1 py-0.5">⌘N</span>
       </button>
     </div>
 
-    <div class="flex-1 overflow-y-auto custom-scrollbar px-4 mt-5 space-y-1">
-      <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-900 bg-white border border-gray-200 shadow-sm">
-        <i class="fas fa-comment-dots w-5 text-center text-gray-700"></i> 对话工作台
+    <nav class="px-3 mt-4 space-y-0.5" id="mainNav">
+      <button data-view="chat" onclick="switchView('chat')" class="nav-item active w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-gray-600 border border-transparent hover:bg-gray-200/50 transition-colors">
+        <i class="fas fa-comments w-4 text-center text-gray-400"></i> 对话工作台
       </button>
-      <button onclick="openContract()" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">
-        <span class="flex items-center gap-3"><i class="fas fa-file-contract w-5 text-center text-gray-400"></i> 我的合同</span>
-        <span class="text-[10px] bg-gray-200 text-gray-600 font-bold px-1.5 py-0.5 rounded">1</span>
+      <button data-view="houses" onclick="switchView('houses')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-gray-600 border border-transparent hover:bg-gray-200/50 transition-colors">
+        <i class="fas fa-building w-4 text-center text-gray-400"></i> 本次候选房源
+        <span class="ml-auto text-[10px] bg-gray-200 text-gray-500 font-semibold px-1.5 py-0.5 rounded-md" id="houseCount">0</span>
       </button>
+      <button data-view="contracts" onclick="switchView('contracts')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-gray-600 border border-transparent hover:bg-gray-200/50 transition-colors">
+        <i class="fas fa-file-contract w-4 text-center text-gray-400"></i> 本次合同
+        <span class="ml-auto text-[10px] bg-gray-200 text-gray-500 font-semibold px-1.5 py-0.5 rounded-md" id="contractCount">0</span>
+      </button>
+    </nav>
 
-      <div class="pt-6 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">最近对话</div>
-      <button class="w-full text-left px-3 py-2 rounded-xl text-[13px] text-gray-600 hover:bg-gray-100 truncate transition-colors">望京合同风险审查</button>
-      <button class="w-full text-left px-3 py-2 rounded-xl text-[13px] text-gray-500 hover:bg-gray-100 truncate transition-colors">押金不退如何处理</button>
+    <div class="flex-1 overflow-y-auto custom-scrollbar px-3 mt-6">
+      <div class="text-[11px] font-medium text-gray-400 px-3 mb-1.5">最近对话</div>
+      <div class="space-y-0.5" id="chatList"></div>
     </div>
 
-    <div class="p-4 border-t border-gray-200 mt-auto">
-      <div class="flex items-center justify-between px-2 py-2.5 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors group">
-        <div class="flex items-center gap-3 min-w-0">
-          <div class="relative">
-            <img src="https://ui-avatars.com/api/?name=张三&background=e0f2fe&color=0369a1" alt="User" class="w-9 h-9 rounded-full border border-gray-200 shadow-sm shrink-0">
-            <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
+    <div class="px-3 pb-2">
+      <div class="text-[10px] text-gray-400 leading-relaxed bg-gray-200/40 border border-gray-200/60 rounded-xl px-3 py-2">
+        <i class="fas fa-clock mr-1"></i>候选房源与合同仅用于<b>本次工作台</b>，长期保存与跨设备同步暂未承诺。
+      </div>
+    </div>
+
+    <div class="p-3 border-t border-gray-200/80 mt-auto">
+      <div class="flex items-center justify-between px-2 py-2 rounded-xl hover:bg-gray-200/60 cursor-pointer transition-colors group" onclick="openSettingsModal()" title="本地数据与存储设置">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="relative shrink-0">
+            <div class="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-semibold text-xs">
+              <i class="fas fa-database text-xs"></i>
+            </div>
+            <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#f7f7f8] rounded-full"></div>
           </div>
           <div class="flex-1 min-w-0">
-            <div class="text-[13px] font-semibold text-gray-900 truncate">张三</div>
-            <div class="text-[11px] text-brand-600 font-medium truncate flex items-center gap-1"><i class="fas fa-crown text-[10px]"></i> Pro 计划</div>
+            <div class="text-[13px] font-medium text-gray-900 truncate">本地沙箱存储</div>
+            <div class="text-[11px] text-gray-400 truncate">数据仅存本机 (LocalStorage)</div>
           </div>
         </div>
-        <i class="fas fa-ellipsis-v text-gray-400 group-hover:text-gray-600 px-2 transition-colors"></i>
+        <i class="fas fa-gear text-gray-400 group-hover:text-gray-600 px-1 transition-colors text-xs"></i>
       </div>
     </div>
   </aside>
 
-  <!-- Main -->
-  <main class="flex-1 flex flex-col min-w-0">
-    <header class="h-16 border-b border-gray-100 flex items-center justify-between px-6 shrink-0">
-      <h2 class="text-[15px] font-semibold text-gray-900" id="pageTitle">对话工作台</h2>
-      <div class="flex items-center gap-2 text-xs text-gray-500">
-        <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
-        Agent 在线 · 已连接你的合同库
+  <!-- ============ Main ============ -->
+  <main class="flex-1 flex flex-col min-w-0 bg-white">
+    <header class="h-14 flex items-center justify-between px-5 shrink-0 border-b border-gray-100/80">
+      <div class="flex items-center gap-2 min-w-0">
+        <h2 class="text-[14px] font-medium text-gray-900 truncate" id="pageTitle">新对话</h2>
+        <button id="titleEditBtn" class="text-gray-300 hover:text-gray-500 transition-colors" title="重命名会话" onclick="renameActiveConv()"><i class="fas fa-pen text-[10px]"></i></button>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:flex items-center gap-1.5 text-[11px] text-gray-400 border border-gray-200 rounded-full px-2.5 py-1">
+          <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span></span>
+          Agent 在线
+        </span>
+        <button onclick="shareActiveConv()" class="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 flex items-center justify-center transition-colors" title="分享会话（复制 Markdown 文本）">
+          <i class="fas fa-arrow-up-from-bracket text-xs"></i>
+        </button>
       </div>
     </header>
 
-    <div class="flex-1 overflow-y-auto custom-scrollbar" id="chatView">
+    <!-- ===== View: Chat Workbench ===== -->
+    <div id="view-chat" class="flex-1 flex flex-col min-h-0">
+      <div class="flex-1 overflow-y-auto custom-scrollbar" id="chatView">
 
-      <!-- Empty state: chat-centered hero -->
-      <div id="emptyState" class="h-full flex flex-col items-center justify-center px-6 -mt-10">
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight fade-in" style="animation-delay:.05s">张三，我是你的租房 Agent</h1>
-        <p class="text-sm text-gray-500 mt-3 mb-10 fade-in" style="animation-delay:.1s">上传一份合同，我会抽取条款、扫描风险，并带你定位到原文</p>
+        <!-- Empty state -->
+        <div id="emptyState" class="min-h-full flex flex-col items-center justify-center px-6 py-10">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-md mb-5 fade-in">
+            <i class="fas fa-house-signal"></i>
+          </div>
+          <h1 class="text-2xl md:text-[28px] font-semibold text-gray-900 tracking-tight fade-in" style="animation-delay:.05s">你好，我是你的租房 Agent</h1>
+          <p class="text-sm text-gray-500 mt-2.5 mb-9 fade-in" style="animation-delay:.1s">问我租房问题，或上传合同、粘贴房源信息，我会帮你分析并给出建议</p>
 
-        <div id="heroSlot" class="w-full max-w-2xl fade-in" style="animation-delay:.15s"></div>
+          <div id="heroSlot" class="w-full max-w-2xl fade-in" style="animation-delay:.15s"></div>
 
-        <div class="flex flex-wrap justify-center gap-5 mt-8 mb-4 fade-in px-4" style="animation-delay:.2s">
-          <button onclick="startContractReview()" class="w-36 h-32 bg-yellow-50 border border-yellow-200 rounded-2xl shadow-sm hover:shadow-md transform -rotate-6 hover:rotate-0 hover:-translate-y-1.5 transition-all duration-300 p-4 flex flex-col text-left group">
-            <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 mb-auto transition-transform group-hover:scale-110">
-              <i class="fas fa-file-contract text-sm"></i>
-            </div>
-            <span class="text-[13px] font-semibold text-yellow-900 leading-snug">审查刚上传的<br>租赁合同</span>
-          </button>
-          
-          <button onclick="send('违约金条款怎么跟房东谈？')" class="w-36 h-32 bg-purple-50 border border-purple-200 rounded-2xl shadow-sm hover:shadow-md transform rotate-3 hover:rotate-0 hover:-translate-y-1.5 transition-all duration-300 p-4 flex flex-col text-left group mt-3">
-            <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mb-auto transition-transform group-hover:scale-110">
-              <i class="fas fa-comments-dollar text-sm"></i>
-            </div>
-            <span class="text-[13px] font-semibold text-purple-900 leading-snug">违约金条款<br>怎么谈？</span>
-          </button>
-          
-          <button onclick="send('押金不退怎么办？')" class="w-36 h-32 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-sm hover:shadow-md transform -rotate-3 hover:rotate-0 hover:-translate-y-1.5 transition-all duration-300 p-4 flex flex-col text-left group">
-            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 mb-auto transition-transform group-hover:scale-110">
-              <i class="fas fa-shield-alt text-sm"></i>
-            </div>
-            <span class="text-[13px] font-semibold text-emerald-900 leading-snug">押金不退<br>怎么办？</span>
-          </button>
+
+          <!-- 主操作（倾斜卡片） -->
+          <div class="flex flex-wrap justify-center gap-5 w-full max-w-2xl mt-8 mb-2 fade-in px-4" style="animation-delay:.2s">
+            <button onclick="openImport('paste')" class="group w-36 h-32 text-left bg-yellow-50 border border-yellow-200 rounded-2xl shadow-sm hover:shadow-md transform -rotate-6 hover:rotate-0 hover:-translate-y-1.5 transition-all duration-300 p-4 flex flex-col">
+              <div class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center mb-auto group-hover:scale-110 transition-transform"><i class="fas fa-paste text-sm"></i></div>
+              <span class="text-[13px] font-semibold text-yellow-900 leading-snug">添加房源<br><span class="text-[10px] font-normal text-yellow-600">粘贴 / 手动填写单条</span></span>
+            </button>
+            <button onclick="openImport('batch')" class="group w-36 h-32 text-left bg-green-50 border border-green-200 rounded-2xl shadow-sm hover:shadow-md transform rotate-3 hover:rotate-0 hover:-translate-y-1.5 transition-all duration-300 p-4 flex flex-col mt-3">
+              <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-auto group-hover:scale-110 transition-transform"><i class="fas fa-layer-group text-sm"></i></div>
+              <span class="text-[13px] font-semibold text-green-900 leading-snug">批量导入<br><span class="text-[10px] font-normal text-green-600">批量粘贴 / Excel / Word</span></span>
+            </button>
+            <button onclick="startRecommend()" class="group w-36 h-32 text-left bg-purple-50 border border-purple-200 rounded-2xl shadow-sm hover:shadow-md transform -rotate-3 hover:rotate-0 hover:-translate-y-1.5 transition-all duration-300 p-4 flex flex-col">
+              <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-auto group-hover:scale-110 transition-transform"><i class="fas fa-filter text-sm"></i></div>
+              <span class="text-[13px] font-semibold text-purple-900 leading-snug">开始筛选<br><span class="text-[10px] font-normal text-purple-600">硬约束与软偏好</span></span>
+            </button>
+          </div>
+
+          <!-- 次操作 -->
+          <div class="flex flex-wrap justify-center gap-x-5 gap-y-1.5 mt-5 fade-in" style="animation-delay:.25s">
+            <button onclick="openImport('manual')" class="text-xs text-gray-400 hover:text-brand-600 transition-colors"><i class="fas fa-pen-to-square mr-1"></i>手动填写房源</button>
+            <button onclick="openBindEntry()" class="text-xs text-gray-400 hover:text-brand-600 transition-colors"><i class="fas fa-file-shield mr-1"></i>审查已绑定合同</button>
+            <button onclick="send('押金不退怎么办？')" class="text-xs text-gray-400 hover:text-brand-600 transition-colors"><i class="fas fa-book-open mr-1"></i>问租房常识</button>
+          </div>
+
+          <p class="text-[11px] text-gray-400 mt-9 flex items-center gap-1.5 fade-in" style="animation-delay:.3s"><i class="fas fa-clock text-[10px]"></i>候选房源和合同仅用于本次工作台 · 比较范围 3—10 套</p>
         </div>
-        <p class="text-[11px] text-gray-400 mt-10"><i class="fas fa-lock mr-1"></i>支持 PDF / Word / 粘贴合同文本 · 你的合同数据仅自己可见</p>
+
+        <!-- Conversation thread -->
+        <div id="thread" class="hidden max-w-3xl mx-auto px-6 py-8 space-y-7"></div>
       </div>
 
-      <!-- Conversation thread -->
-      <div id="thread" class="hidden max-w-3xl mx-auto px-6 py-8 space-y-6"></div>
+      <!-- Docked composer -->
+      <div id="dock" class="hidden px-4 pb-4 pt-1 shrink-0">
+        <div id="dockSlot" class="max-w-3xl mx-auto"></div>
+        <p class="text-[10px] text-center text-gray-400 mt-2">回答基于你导入的房源、合同与公开租房知识，仅供参考，不构成法律意见</p>
+      </div>
     </div>
 
-    <!-- Docked composer (visible in conversation mode) -->
-    <div id="dock" class="hidden border-t border-gray-100 bg-white p-4 shrink-0">
-      <div id="dockSlot" class="max-w-3xl mx-auto"></div>
-      <p class="text-[10px] text-center text-gray-400 mt-2">Agent 基于你的合同图谱回答，内容仅供参考，不构成法律意见</p>
+    <!-- ===== View: 本次候选房源 ===== -->
+    <div id="view-houses" class="hidden flex-1 overflow-y-auto custom-scrollbar">
+      <div class="max-w-3xl mx-auto px-6 py-8">
+        <div class="flex items-center justify-between mb-1">
+          <div>
+            <h1 class="text-lg font-semibold text-gray-900">本次候选房源</h1>
+            <p class="text-xs text-gray-400 mt-1">你自己导入的临时候选，仅用于本次工作台 · 比较范围 3—10 套</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openImport('batch')" class="bg-white border border-gray-200 hover:border-gray-300 text-gray-700 text-xs font-medium rounded-xl px-3.5 py-2.5 transition-colors flex items-center gap-1.5">
+              <i class="fas fa-layer-group text-[10px]"></i> 批量导入
+            </button>
+            <button onclick="openImport('paste')" class="bg-gray-900 hover:bg-gray-700 text-white text-xs font-medium rounded-xl px-4 py-2.5 transition-colors flex items-center gap-1.5">
+              <i class="fas fa-plus text-[10px]"></i> 添加房源
+            </button>
+          </div>
+        </div>
+        <div id="compareHint" class="my-4"></div>
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <div class="relative flex-1 min-w-[180px]">
+            <i class="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+            <input id="houseSearch" oninput="hf.q=this.value; renderHouses()" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white transition-all placeholder-gray-400" placeholder="搜索名称 / 区域 / 备注…">
+          </div>
+          <select id="houseFilter" onchange="hf.filter=this.value; renderHouses()" class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] text-gray-600 outline-none focus:border-gray-300">
+            <option value="all">全部</option>
+            <option value="whole">整租</option>
+            <option value="shared">合租</option>
+            <option value="bathroom">独立卫浴</option>
+            <option value="incomplete">信息不完整</option>
+            <option value="dropped">已放弃</option>
+          </select>
+          <select id="houseSort" onchange="hf.sort=this.value; renderHouses()" class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[12px] text-gray-600 outline-none focus:border-gray-300">
+            <option value="default">默认排序</option>
+            <option value="rent">月租从低到高</option>
+            <option value="cost">月度总成本从低到高</option>
+            <option value="commute">通勤从短到长</option>
+            <option value="completeness">信息完整度从高到低</option>
+          </select>
+        </div>
+        <div id="houseList" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- ===== View: 本次合同 ===== -->
+    <div id="view-contracts" class="hidden flex-1 overflow-y-auto custom-scrollbar">
+      <div class="max-w-3xl mx-auto px-6 py-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-lg font-semibold text-gray-900">本次合同</h1>
+            <p class="text-xs text-gray-400 mt-1">绑定到候选房源的合同，仅用于本次工作台</p>
+          </div>
+          <button onclick="openBindEntry()" class="bg-gray-900 hover:bg-gray-700 text-white text-xs font-medium rounded-xl px-4 py-2.5 transition-colors flex items-center gap-1.5">
+            <i class="fas fa-plus text-[10px]"></i> 绑定合同
+          </button>
+        </div>
+        <div id="contractList" class="space-y-3"></div>
+      </div>
     </div>
   </main>
 
-  <!-- Contract drawer -->
-  <div id="overlay" class="hidden fixed inset-0 bg-black/20 z-30" onclick="closeContract()"></div>
-  <aside id="contractDrawer" class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-40 transform translate-x-full transition-transform duration-300 flex flex-col">
+  <!-- ============ House detail drawer ============ -->
+  <!-- ============ House detail drawer ============ -->
+  <div id="houseOverlay" class="hidden fixed inset-0 bg-black/20 z-30" onclick="closeHouseDrawer()"></div>
+  <aside id="houseDrawer" role="dialog" aria-modal="true" aria-labelledby="houseDrawerTitle" aria-hidden="true" inert class="hidden fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl z-40 transform translate-x-full transition-transform duration-300 flex flex-col">
     <div class="h-16 flex items-center justify-between px-5 border-b border-gray-100 shrink-0">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-500 border border-red-100"><i class="fas fa-file-pdf"></i></div>
-        <div>
-          <div class="text-sm font-semibold text-gray-900">北京市房屋租赁合同（标准版）.pdf</div>
-          <div class="text-[11px] text-gray-500">已解析 18 项条款 · 2.4 MB</div>
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 shrink-0"><i class="fas fa-building"></i></div>
+        <div class="min-w-0">
+          <div class="text-sm font-semibold text-gray-900 truncate" id="houseDrawerTitle">房源详情</div>
+          <div class="text-[11px] text-gray-500" id="houseDrawerMeta"></div>
         </div>
       </div>
-      <button onclick="closeContract()" class="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-400 flex items-center justify-center"><i class="fas fa-times"></i></button>
+      <button onclick="closeHouseDrawer()" aria-label="关闭房源详情抽屉" class="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-400 flex items-center justify-center shrink-0"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="flex-1 overflow-y-auto custom-scrollbar" id="houseDrawerBody"></div>
+  </aside>
+
+  <!-- ============ Contract drawer ============ -->
+  <div id="overlay" class="hidden fixed inset-0 bg-black/20 z-30" onclick="closeContract()"></div>
+  <aside id="contractDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true" inert class="hidden fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-40 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="h-16 flex items-center justify-between px-5 border-b border-gray-100 shrink-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-500 border border-red-100 shrink-0"><i class="fas fa-file-pdf"></i></div>
+        <div class="min-w-0">
+          <div class="text-sm font-semibold text-gray-900 truncate" id="drawerTitle">合同</div>
+          <div class="text-[11px] text-gray-500" id="drawerMeta"></div>
+        </div>
+      </div>
+      <button onclick="closeContract()" aria-label="关闭合同抽屉" class="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-400 flex items-center justify-center shrink-0"><i class="fas fa-times"></i></button>
     </div>
     <div class="flex-1 overflow-y-auto custom-scrollbar p-6 text-[13px] leading-7 text-gray-600 space-y-5" id="contractBody"></div>
     <div class="p-4 border-t border-gray-100 shrink-0 flex items-center gap-2">
       <i class="fas fa-highlighter text-amber-500 text-sm"></i>
-      <span class="text-xs text-gray-500">黄色高亮 = Agent 判定的风险条款，点击风险卡片可跳转定位</span>
+      <span class="text-xs text-gray-500">黄色高亮 = 与房源承诺冲突或风险条款，点击核验项可跳转定位</span>
     </div>
   </aside>
 
-  <!-- Shared composer (moved between hero and dock) -->
-  <template id="composerTpl">
-    <div class="bg-white border border-gray-200 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-2 focus-within:border-gray-400 focus-within:shadow-[0_2px_16px_rgba(0,0,0,0.08)] transition-all">
-      <textarea id="chatInput" rows="2" class="w-full bg-transparent resize-none outline-none text-sm p-2 text-gray-800 placeholder-gray-400 custom-scrollbar max-h-40" placeholder="上传合同、或直接问我任何租房问题…" onkeydown="handleEnter(event)"></textarea>
-      <div class="flex justify-between items-center px-1">
-        <div class="flex gap-0.5">
-          <button onclick="startContractReview()" title="上传合同" class="w-8 h-8 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-paperclip text-sm"></i></button>
-          <button class="w-8 h-8 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-image text-sm"></i></button>
+  <!-- ============ Import modal ============ -->
+  <div id="importModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30 fade-in p-4" role="dialog" aria-modal="true" aria-labelledby="importModalTitle">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[88vh] flex flex-col">
+      <div class="flex items-center justify-between px-6 pt-5 pb-3 shrink-0">
+        <div>
+          <h3 class="text-[15px] font-semibold text-gray-900" id="importModalTitle">导入候选房源</h3>
+          <p class="text-[11px] text-gray-400 mt-0.5">所有非结构化输入都会先经 AI 提取字段，由你确认后才加入候选</p>
         </div>
-        <button onclick="submitInput()" class="bg-brand-500 hover:bg-brand-600 text-white rounded-xl px-4 py-2 text-[13px] font-medium shadow-sm transition-colors flex items-center gap-1.5">
-          发送 <i class="fas fa-arrow-up text-[10px]"></i>
-        </button>
+        <button onclick="closeImport()" aria-label="关闭导入候选房源窗口" class="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-400 flex items-center justify-center"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="flex gap-1 px-6 border-b border-gray-100 shrink-0 overflow-x-auto" id="importTabs">
+        <button data-tab="paste" onclick="switchImportTab('paste')" class="imp-tab active px-3 py-2.5 text-[12px] font-medium text-gray-500 border-b-2 border-transparent -mb-px whitespace-nowrap">粘贴单条</button>
+        <button data-tab="manual" onclick="switchImportTab('manual')" class="imp-tab px-3 py-2.5 text-[12px] font-medium text-gray-500 border-b-2 border-transparent -mb-px whitespace-nowrap">手动填写</button>
+        <button data-tab="batch" onclick="switchImportTab('batch')" class="imp-tab px-3 py-2.5 text-[12px] font-medium text-gray-500 border-b-2 border-transparent -mb-px whitespace-nowrap">批量粘贴</button>
+        <button data-tab="file" onclick="switchImportTab('file')" class="imp-tab px-3 py-2.5 text-[12px] font-medium text-gray-500 border-b-2 border-transparent -mb-px whitespace-nowrap">上传文件</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar px-6 py-5" id="importBody">
+        <!-- 粘贴单条 -->
+        <div data-panel="paste">
+          <textarea id="impPasteText" rows="6" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-gray-300 focus:bg-white placeholder-gray-400 custom-scrollbar" placeholder="粘贴一条房源描述，例如：&#10;望京 南湖东园一区 南向一居 5800/月 押一付一 68.5平 12/18层 独立卫浴 地铁14号线望京站350米 通勤约35分钟 物业费房东承担 允许养猫 10月1日可入住"></textarea>
+          <div class="flex justify-end mt-3">
+            <button onclick="doParsePaste()" class="bg-gray-900 hover:bg-gray-700 text-white text-xs font-medium rounded-xl px-4 py-2.5 transition-colors"><i class="fas fa-wand-magic-sparkles mr-1.5"></i>AI 提取字段</button>
+          </div>
+        </div>
+        <!-- 手动填写 -->
+        <div data-panel="manual" class="hidden">
+          <div class="grid grid-cols-2 gap-3" id="manualForm">
+            <label class="text-[12px] text-gray-600">名称 / 小区<input id="mf-name" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white" placeholder="如：望京·南湖东园一居"></label>
+            <label class="text-[12px] text-gray-600">区域<input id="mf-region" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white" placeholder="如：朝阳区 望京"></label>
+            <label class="text-[12px] text-gray-600">月租（元）<input id="mf-rent" type="number" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white" placeholder="5800"></label>
+            <label class="text-[12px] text-gray-600">押金 / 付款方式
+              <select id="mf-deposit" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white">
+                <option value="">待确认</option><option>押一付一</option><option>押一付三</option><option>押二付一</option><option>押一付六</option><option>无押金</option>
+              </select></label>
+            <label class="text-[12px] text-gray-600">物业费（元/月，留空为待确认）<input id="mf-property" type="number" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white" placeholder="120"></label>
+            <label class="text-[12px] text-gray-600">通勤（分钟）<input id="mf-commute" type="number" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white" placeholder="35"></label>
+            <label class="text-[12px] text-gray-600">户型<input id="mf-layout" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white" placeholder="一居 / 两居合租次卧"></label>
+            <label class="text-[12px] text-gray-600">面积（㎡）<input id="mf-area" type="number" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white" placeholder="68.5"></label>
+            <label class="text-[12px] text-gray-600">楼层 / 朝向<input id="mf-floor" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white" placeholder="12/18层 · 南向"></label>
+            <label class="text-[12px] text-gray-600">可入住时间<input id="mf-available" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white" placeholder="2026-10-01"></label>
+          </div>
+          <div class="flex flex-wrap gap-4 mt-3 text-[12px] text-gray-600">
+            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="mf-bathroom" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500"> 独立卫浴</label>
+            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="mf-shared" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500"> 合租</label>
+            <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="mf-pet" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500"> 允许宠物</label>
+          </div>
+          <div id="manualError" class="hidden mt-3 text-[12px] text-red-500"></div>
+          <div class="flex justify-end mt-4">
+            <button onclick="doManual()" class="bg-gray-900 hover:bg-gray-700 text-white text-xs font-medium rounded-xl px-4 py-2.5 transition-colors"><i class="fas fa-arrow-right mr-1.5"></i>生成待确认字段</button>
+          </div>
+        </div>
+        <!-- 批量粘贴 -->
+        <div data-panel="batch" class="hidden">
+          <textarea id="impBatchText" rows="7" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-gray-300 focus:bg-white placeholder-gray-400 custom-scrollbar" placeholder="每行一条房源，或点击左下方按钮填入示例"></textarea>
+          <div class="flex justify-between mt-3">
+            <button onclick="fillDemoBatch()" class="text-xs text-brand-600 hover:text-brand-700 font-medium"><i class="fas fa-circle-down mr-1"></i>填入 5 套演示房源</button>
+            <button onclick="doParseBatch()" class="bg-gray-900 hover:bg-gray-700 text-white text-xs font-medium rounded-xl px-4 py-2.5 transition-colors"><i class="fas fa-wand-magic-sparkles mr-1.5"></i>AI 批量提取</button>
+          </div>
+        </div>
+        <!-- 上传文件 -->
+        <div data-panel="file" class="hidden">
+          <button type="button" onclick="document.getElementById('houseFileInput').click()" aria-label="点击选择房源文件" class="w-full text-left border-2 border-dashed border-gray-200 hover:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500 rounded-2xl py-10 flex flex-col items-center justify-center cursor-pointer transition-colors group">
+            <i class="fas fa-cloud-arrow-up text-2xl text-gray-300 group-hover:text-brand-400 mb-3"></i>
+            <div class="text-[13px] font-medium text-gray-700">点击选择房源文件</div>
+            <div class="text-[11px] text-gray-400 mt-1.5">支持 Excel（.xlsx / .xls）、Word（.docx / .doc）、文本文件（.txt / .csv / .md）</div>
+            <div class="text-[10px] text-gray-300 mt-1">图片与扫描件 OCR 为规划能力，暂不支持</div>
+          </button>
+          <div id="fileParseState" role="status" aria-live="polite" class="mt-4"></div>
+        </div>
+
+        <!-- 字段确认（解析后） -->
+        <div data-panel="confirm" class="hidden">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-[13px] font-semibold text-gray-900" id="confirmTitle">AI 提取结果</div>
+            <button onclick="switchImportTab('batch')" class="text-xs text-gray-400 hover:text-gray-600"><i class="fas fa-arrow-left mr-1"></i>返回重新导入</button>
+          </div>
+          <div class="text-[11px] text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-3 flex items-start gap-1.5">
+            <i class="fas fa-circle-info mt-0.5"></i><span>请逐套确认或修改<b>租金、押金/付款方式、物业费、通勤、户型</b>；留空字段将标记为「待确认」，缺少租金/通勤等关键信息的房源将作为待完善候选保存，不会直接进入推荐比较。</span>
+          </div>
+          <div id="confirmList" class="space-y-3"></div>
+          <div class="flex items-center justify-between mt-5 sticky bottom-0 bg-white pt-3 border-t border-gray-100">
+            <span class="text-[11px] text-gray-400" id="confirmCount"></span>
+            <button onclick="confirmImport()" class="bg-gray-900 hover:bg-gray-700 text-white text-xs font-medium rounded-xl px-5 py-2.5 transition-colors"><i class="fas fa-check mr-1.5"></i>加入本次候选房源</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Preference modal ============ -->
+  <div id="prefsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30 fade-in p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[88vh] flex flex-col">
+      <div class="flex items-center justify-between px-6 pt-5 pb-3 shrink-0">
+        <div>
+          <h3 class="text-[15px] font-semibold text-gray-900">筛选偏好</h3>
+          <p class="text-[11px] text-gray-400 mt-0.5">硬约束会淘汰房源，软偏好只影响排序并说明取舍</p>
+        </div>
+        <button onclick="closePrefs()" aria-label="关闭偏好设置" class="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-400 flex items-center justify-center"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="flex-1 overflow-y-auto custom-scrollbar px-6 py-4">
+        <div class="text-[12px] font-semibold text-red-500 mb-2 flex items-center gap-1.5"><i class="fas fa-ban text-[10px]"></i>硬约束（不满足即淘汰 / 标记不满足）</div>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="text-[12px] text-gray-600">月租预算上限（元）<input id="pf-budget" type="number" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white"></label>
+          <label class="text-[12px] text-gray-600">通勤上限（分钟）<input id="pf-commute" type="number" class="mt-1 w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-gray-300 focus:bg-white"></label>
+        </div>
+        <div class="flex flex-wrap gap-4 mt-3 text-[12px] text-gray-600">
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="pf-bathroom" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500"> 必须独立卫浴</label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="pf-shared" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500"> 接受合租（默认不接受）</label>
+        </div>
+        <div class="text-[12px] font-semibold text-brand-600 mt-6 mb-2 flex items-center gap-1.5"><i class="fas fa-arrow-up-wide-short text-[10px]"></i>软偏好（只影响排序，会在结果中说明取舍）</div>
+        <div class="flex flex-wrap gap-2" id="softTags">
+          <button data-soft="south" onclick="toggleSoft('south')" class="soft-tag text-xs border rounded-full px-3 py-1.5 transition-colors">南向优先</button>
+          <button data-soft="light" onclick="toggleSoft('light')" class="soft-tag text-xs border rounded-full px-3 py-1.5 transition-colors">采光好</button>
+          <button data-soft="highFloor" onclick="toggleSoft('highFloor')" class="soft-tag text-xs border rounded-full px-3 py-1.5 transition-colors">中高楼层</button>
+          <button data-soft="bigArea" onclick="toggleSoft('bigArea')" class="soft-tag text-xs border rounded-full px-3 py-1.5 transition-colors">面积更大</button>
+          <button data-soft="flexPay" onclick="toggleSoft('flexPay')" class="soft-tag text-xs border rounded-full px-3 py-1.5 transition-colors">付款灵活（押一付一）</button>
+        </div>
+        <div id="prefsError" class="hidden mt-4 text-[12px] text-red-500"></div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-100 flex gap-2.5 shrink-0">
+        <button onclick="closePrefs()" class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl py-2.5 text-[13px] font-medium transition-colors">取消</button>
+        <button onclick="savePrefs()" class="flex-1 bg-gray-900 hover:bg-gray-700 text-white rounded-xl py-2.5 text-[13px] font-medium transition-colors">保存并重新推荐</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Confirm modal ============ -->
+  <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30 fade-in">
+    <div class="bg-white rounded-2xl p-6 w-[340px] shadow-2xl mx-4">
+      <div class="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-4"><i class="fas fa-trash-can text-sm"></i></div>
+      <h3 class="text-[15px] font-semibold text-gray-900" id="modalTitle">删除</h3>
+      <p class="text-[13px] text-gray-500 mt-1.5 leading-relaxed" id="modalDesc"></p>
+      <div class="flex gap-2.5 mt-6">
+        <button onclick="closeModal()" class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl py-2.5 text-[13px] font-medium transition-colors">取消</button>
+        <button onclick="confirmModal()" class="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl py-2.5 text-[13px] font-medium transition-colors" id="modalConfirmBtn">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Shared composer ============ -->
+  <template id="composerTpl">
+    <div>
+      <div id="contextChips" class="hidden flex flex-wrap gap-1.5 mb-2 px-1"></div>
+      <div id="attachChips" class="hidden flex flex-wrap gap-1.5 mb-2 px-1"></div>
+      <div class="bg-white border border-gray-200 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.05)] p-2.5 focus-within:border-gray-300 focus-within:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all">
+        <textarea id="chatInput" rows="2" class="w-full bg-transparent resize-none outline-none text-sm px-2.5 py-1.5 text-gray-800 placeholder-gray-400 custom-scrollbar max-h-40" placeholder="描述预算 / 通勤 / 居住要求，或粘贴房源、合同文本…" onkeydown="handleEnter(event)" onpaste="handlePaste(event)"></textarea>
+        <div class="flex justify-between items-center px-1">
+          <div class="flex gap-0.5 items-center">
+            <button onclick="triggerFilePick()" title="上传合同 (PDF)" class="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-paperclip text-sm"></i></button>
+            <button onclick="openImport('batch')" title="导入房源（批量粘贴 / Excel / Word / 文本）" class="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-file-import text-sm"></i></button>
+            <button onclick="toast('图片 OCR 为规划能力，暂不支持识别图中文字')" title="图片（规划能力）" class="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-image text-sm"></i></button>
+            <span class="hidden sm:flex items-center text-[10px] text-gray-300 ml-1.5 gap-1"><i class="fas fa-link text-[9px]"></i>附件自动加入当前对话</span>
+          </div>
+          <button id="sendBtn" onclick="submitInput()" class="bg-gray-900 hover:bg-gray-700 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm transition-colors" title="发送">
+            <i class="fas fa-arrow-up text-xs"></i>
+          </button>
+        </div>
       </div>
     </div>
   </template>
 
-  <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-xs px-4 py-2.5 rounded-full shadow-lg z-50"></div>
+  <input type="file" id="fileInput" accept=".pdf,.txt" class="hidden">
+  <input type="file" id="houseFileInput" accept=".xlsx,.xls,.docx,.doc,.txt,.csv,.md" class="hidden">
+  <div id="toast" role="status" aria-live="polite" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-4 py-2.5 rounded-full shadow-lg z-[60] fade-in"></div>
 
   <script>
-    // ---------- data ----------
-    const RISK_COLORS = { 高: 'bg-red-50 text-red-600 border-red-100', 中: 'bg-amber-50 text-amber-600 border-amber-100' };
-    const RISKS = [
-      { level: '高', clause: 8, title: '违约金过高', desc: '约定为 3 个月租金，显著高于行业惯例与司法实践支持的 1 个月上限' },
-      { level: '高', clause: 6, title: '押金退还条件模糊', desc: '未约定退还时限，且"损坏"无扣款标准，退租时极易扯皮' },
-      { level: '中', clause: 12, title: '自动续约陷阱', desc: '未提前 30 日书面通知即自动续租一年，且租金上浮 5%' },
-    ];
-    const CLAUSES = [
-      [1, '第一条 租赁房屋', '甲方将位于北京市朝阳区望京街道某小区 3 号楼 1202 室房屋出租给乙方居住使用，建筑面积 68.5 平方米。'],
-      [3, '第三条 租赁期限', '租赁期共 12 个月，自 2026 年 9 月 15 日起至 2027 年 9 月 14 日止。'],
-      [4, '第四条 租金', '月租金为人民币 6,500 元，按"押一付三"方式支付，乙方应于每期开始前 7 日支付。'],
-      [6, '第六条 押金', '乙方于签约当日支付房屋租赁押金人民币 6,500 元。租赁期满，房屋及设施无损坏的，甲方退还押金。'],
-      [8, '第八条 违约责任', '任何一方违约的，应向守约方支付违约金，违约金金额为月租金的三倍，并赔偿由此造成的全部损失。'],
-      [10, '第十条 房屋维修', '租赁期内，因乙方使用不当造成的房屋及设施损坏，由乙方负责维修或赔偿。'],
-      [12, '第十二条 续租', '租赁期届满前 30 日内乙方未书面通知甲方不续租的，视为自动续租一年，续租期间租金在上一年度基础上上浮 5%。'],
-    ];
-    const RISK_CLAUSES = new Set([6, 8, 12]);
-
-    const ANSWERS = {
-      违约金: `<p class="font-medium text-gray-900 mb-1 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 已检索合同图谱 · 第 8 条</p>
-        你的合同违约金约定为 <span class="text-red-600 font-medium">3 个月租金（19,500 元）</span>，司法实践中法院通常仅支持实际损失的 30% 上浮，即约 1 个月。<br><br>
-        <b>谈判话术：</b>"我咨询过做法务的朋友，三倍违约金在诉讼里大概率不会被支持，咱们按行业惯例改成一个月，对双方都公平。"`,
-      押金: `<p class="font-medium text-gray-900 mb-1 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 已检索合同图谱 · 第 6 条</p>
-        退押金关键在<b>证据链</b>：① 入住时拍全屋视频并让房东确认；② 退租前 7 日发书面《退租通知》留存记录；③ 交房当天双方签《房屋交接单》。<br><br>
-        若房东无正当理由克扣，可凭合同 + 转账记录向 12345 或住建委投诉，多数情况可全额退回。`,
-    };
-    const DEFAULT_ANSWER = `<p class="font-medium text-gray-900 mb-1 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 已检索合同图谱（2,451 节点）</p>
-      当前合同整体健康度 78 分，主要风险集中在<b>违约与退租</b>两个环节。你可以直接问我任何条款，例如"第十二条是什么意思"，我会引用原文回答。`;
-
-    // ---------- composer ----------
-    const composer = document.getElementById('composerTpl').content.firstElementChild;
-    document.getElementById('heroSlot').appendChild(composer);
-    const input = document.getElementById('chatInput');
-
-    function submitInput() {
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
-      send(text);
-    }
-    function handleEnter(e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitInput(); }
-    }
-
-    // ---------- thread ----------
-    let started = false;
-    function esc(s) { return s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-    function scrollBottom() { const v = document.getElementById('chatView'); v.scrollTop = v.scrollHeight; }
-
-    function beginThread(title) {
-      if (started) return;
-      started = true;
-      document.getElementById('emptyState').classList.add('hidden');
-      document.getElementById('thread').classList.remove('hidden');
-      document.getElementById('dock').classList.remove('hidden');
-      document.getElementById('dockSlot').appendChild(composer);
-      if (title) document.getElementById('pageTitle').innerText = title;
-    }
-
-    function addUserMsg(html) {
-      document.getElementById('thread').insertAdjacentHTML('beforeend', `
-        <div class="flex gap-3 flex-row-reverse msg-enter">
-          <img src="https://ui-avatars.com/api/?name=张三&background=e0f2fe&color=0369a1" class="w-7 h-7 rounded-full border border-gray-200 mt-0.5 shrink-0">
-          <div class="max-w-[85%]">${html}</div>
-        </div>`);
-      scrollBottom();
-    }
-
-    function addAIMsg(html) {
-      const div = document.createElement('div');
-      div.className = 'flex gap-3 msg-enter';
-      div.innerHTML = `
-        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm"><i class="fas fa-robot text-[10px]"></i></div>
-        <div class="flex-1 min-w-0">${html}</div>`;
-      document.getElementById('thread').appendChild(div);
-      scrollBottom();
-      return div;
-    }
-
-    function addTyping() {
-      return addAIMsg(`
-        <div class="bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3.5 inline-flex items-center gap-1.5" id="typing">
-          <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
-          <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
-          <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
-        </div>`);
-    }
-
-    function send(text) {
-      beginThread('新对话');
-      addUserMsg(`<div class="text-[13px] text-white leading-relaxed bg-brand-500 rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">${esc(text).replace(/\n/g, '<br>')}</div>`);
-      const t = addTyping();
-      setTimeout(() => {
-        t.remove();
-        const key = text.includes('违约金') ? '违约金' : text.includes('押金') ? '押金' : null;
-        addAIMsg(`<div class="text-[13px] text-gray-800 leading-relaxed bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3">${ANSWERS[key] || DEFAULT_ANSWER}</div>`);
-      }, 900);
-    }
-
-    // ---------- contract review demo ----------
-    function startContractReview() {
-      beginThread('望京合同风险审查');
-      addUserMsg(`
-        <div class="bg-white border border-gray-200 rounded-2xl rounded-tr-sm px-3 py-2.5 flex items-center gap-3 shadow-sm">
-          <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-500 border border-red-100 shrink-0"><i class="fas fa-file-pdf"></i></div>
-          <div>
-            <div class="text-[13px] font-medium text-gray-900">北京市房屋租赁合同（标准版）.pdf</div>
-            <div class="text-[11px] text-gray-500">2.4 MB</div>
-          </div>
-        </div>`);
-
-      const msg = addTyping();
-
-      const steps = ['解析文档（5 页 / 2.4 MB）', '抽取 18 项条款 · 3 方当事人 · 6 个时间节点', '匹配风险规则库（42 条规则）'];
-      let i = 0;
-      function render() {
-        const rows = steps.map((s, j) => `
-          <div class="flex items-center gap-2.5 text-[13px] ${j < i ? 'text-green-600' : j === i ? 'text-gray-800' : 'text-gray-300'}">
-            <i class="fas ${j < i ? 'fa-circle-check' : j === i ? 'fa-circle-notch fa-spin' : 'fa-circle'} w-4 text-center"></i> ${s}
-          </div>`).join('');
-        msg.innerHTML = `<div class="bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3.5 space-y-2 font-medium">${rows}</div>`;
-      }
-      render();
-      const tick = setInterval(() => {
-        i++;
-        if (i >= steps.length) { clearInterval(tick); msg.remove(); showRiskReport(); }
-        else render();
-      }, 700);
-    }
-
-    function showRiskReport() {
-      const items = RISKS.map((r, idx) => `
-        <button onclick="openContract(${r.clause})" class="risk-item w-full text-left flex items-start gap-3 px-4 py-3 border-t border-gray-100 transition-colors">
-          <span class="shrink-0 mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded border ${RISK_COLORS[r.level]}">${r.level}风险</span>
-          <span class="flex-1 min-w-0">
-            <span class="text-[13px] font-semibold text-gray-900">${r.title}
-              <span class="text-[11px] font-normal text-gray-400 ml-1">第 ${r.clause} 条</span>
-            </span>
-            <span class="block text-xs text-gray-500 mt-0.5 leading-relaxed">${r.desc}</span>
-          </span>
-          <i class="fas fa-arrow-right text-gray-300 text-xs mt-1.5 shrink-0"></i>
-        </button>`).join('');
-
-      addAIMsg(`
-        <div class="text-[13px] text-gray-800 mb-2">合同解析完成，<span class="text-red-600 font-medium">发现 3 项风险（高 2 / 中 1）</span>，点击任意一条可定位原文：</div>
-        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div class="px-4 py-3 flex items-center justify-between bg-gray-50/80 border-b border-gray-100">
-            <div class="flex items-center gap-2 text-[13px] font-semibold text-gray-900"><i class="fas fa-shield-alt text-brand-600"></i> 风险雷达报告</div>
-            <div class="text-[11px] text-gray-500">合同健康度 <b class="text-amber-600">78</b> / 100</div>
-          </div>
-          ${items}
-          <div class="px-4 py-3 border-t border-gray-100 flex gap-2">
-            <button onclick="copyScript()" id="copyBtn" class="flex-1 bg-brand-500 hover:bg-brand-600 text-white rounded-lg py-2 text-xs font-medium shadow-sm transition-colors"><i class="fas fa-comments mr-1.5"></i>复制谈判话术</button>
-            <button onclick="toast('风险报告 PDF 生成中（演示）')" class="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg py-2 text-xs font-medium transition-colors"><i class="fas fa-file-export mr-1.5"></i>导出报告</button>
-          </div>
-        </div>`);
-    }
-
-    const NEGOTIATION = `建议修改的 3 处条款（发给房东）：\n1. 第 8 条：违约金由"月租金三倍"改为"1 个月租金"；\n2. 第 6 条：补充"租赁期满 15 日内退还押金，房屋损坏按市场价折旧扣款，需提供凭证"；\n3. 第 12 条：删除自动续约条款，改为"续租需双方提前 30 日另行协商签约"。`;
-    function copyScript() {
-      navigator.clipboard?.writeText(NEGOTIATION);
-      const b = document.getElementById('copyBtn');
-      b.innerHTML = '<i class="fas fa-check mr-1.5"></i>已复制，可直接粘贴给房东';
-      toast('谈判话术已复制到剪贴板');
-    }
-
-    // ---------- contract drawer ----------
-    function buildContract() {
-      const body = document.getElementById('contractBody');
-      if (body.dataset.built) return;
-      body.innerHTML = CLAUSES.map(([id, title, text]) => `
-        <div class="${RISK_CLAUSES.has(id) ? 'pl-3 border-l-2 border-amber-300' : ''}">
-          <h4 class="text-sm font-semibold text-gray-900 mb-1">${title}</h4>
-          <p>${RISK_CLAUSES.has(id) ? `<mark class="clause">${text}</mark>` : text}</p>
-          ${RISK_CLAUSES.has(id) ? `<div class="text-[11px] text-amber-600 mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>Agent 标记为风险条款</div>` : ''}
-        </div>
-        <div class="id-anchor" id="cl-${id}"></div>`).join('');
-      body.dataset.built = '1';
-    }
-
-    function openContract(clauseId) {
-      buildContract();
-      document.getElementById('overlay').classList.remove('hidden');
-      const d = document.getElementById('contractDrawer');
-      d.classList.remove('translate-x-full');
-      if (clauseId) {
-        setTimeout(() => {
-          const el = document.getElementById('cl-' + clauseId);
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 350);
-      }
-    }
-    function closeContract() {
-      document.getElementById('contractDrawer').classList.add('translate-x-full');
-      document.getElementById('overlay').classList.add('hidden');
-    }
-
-    // ---------- misc ----------
+    // ==================== utils ====================
+    let uid = 0;
+    const nid = () => 'x' + (++uid);
+    function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+    const fmt = n => (n == null ? '' : Number(n).toLocaleString());
     let toastTimer;
     function toast(msg) {
       const t = document.getElementById('toast');
       t.innerText = msg;
       t.classList.remove('hidden');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.classList.add('hidden'), 2200);
+      toastTimer = setTimeout(() => t.classList.add('hidden'), 2400);
     }
+    let modalCb = null;
+    function askConfirm(title, desc, cb, okText) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalDesc').innerText = desc;
+      document.getElementById('modalConfirmBtn').innerText = okText || '删除';
+      document.getElementById('modal').classList.remove('hidden');
+      modalCb = cb;
+    }
+    function closeModal() { document.getElementById('modal').classList.add('hidden'); modalCb = null; }
+    function confirmModal() { if (modalCb) modalCb(); closeModal(); }
+
+    // ==================== data model ====================
+    const SOURCE_LABEL = {
+      paste: '用户粘贴', manual: '手动填写', batch: '批量粘贴',
+      'file-xlsx': 'Excel 导入', 'file-docx': 'Word 导入', 'file-txt': '文本文件导入', link: '外部链接'
+    };
+    let houseSeq = 0, contractSeq = 0, batchSeq = 0;
+    function mkHouse(d) {
+      return Object.assign({
+        id: nid(), no: 'H' + (++houseSeq), batch: null, status: 'active', dropReason: '',
+        source: 'paste', raw: '', name: '', region: '', address: '',
+        rent: null, deposit: '', agencyFee: null, propertyFee: null, propertyBear: '', netFee: null, otherFee: '',
+        area: null, layout: '', floor: '', orientation: '', bathroom: null, lighting: '', furniture: '',
+        commuteMin: null, commuteMode: '地铁', metro: '', nearby: '',
+        pet: '', shared: false, sublet: '', maxPeople: null, leaseReq: '', available: '',
+        notes: '', visits: [], todos: [], verify: [], contractId: null, linkUrl: ''
+      }, d);
+    }
+
+    // 关键字段清单（用于完整度 / 缺失计算）
+    const KEY_FIELDS = [
+      ['rent', '租金'], ['deposit', '押金/付款方式'], ['propertyFee', '物业费'], ['commuteMin', '通勤'],
+      ['layout', '户型'], ['area', '面积'], ['floor', '楼层'], ['orientation', '朝向'],
+      ['bathroom', '独立卫浴'], ['available', '可入住时间'], ['pet', '宠物'], ['region', '区域']
+    ];
+    function isFilled(h, k) {
+      const v = h[k];
+      if (k === 'bathroom') return v === true || v === false;
+      return v !== null && v !== '' && v !== undefined;
+    }
+    function missingFields(h) { return KEY_FIELDS.filter(([k]) => !isFilled(h, k)).map(([, l]) => l); }
+    function completeness(h) {
+      const filled = KEY_FIELDS.filter(([k]) => isFilled(h, k)).length;
+      return Math.round(filled / KEY_FIELDS.length * 100);
+    }
+    function monthlyCost(h) {
+      let sum = (h.rent != null ? h.rent : 0), unknown = [];
+      if (h.rent == null) unknown.push('租金');
+      if (h.propertyFee != null) sum += h.propertyFee; else unknown.push('物业费');
+      if (h.netFee != null) sum += h.netFee; else unknown.push('网费');
+      return { sum, unknown, isRentMissing: h.rent == null };
+    }
+    function oneTimeCost(h) {
+      let months = 0;
+      const m = (h.deposit || '').match(/押([一二三])付/);
+      if (m) months = { '一': 1, '二': 2, '三': 3 }[m[1]] || 0;
+      return { deposit: (h.rent || 0) * months, agency: h.agencyFee, label: h.deposit || '待确认' };
+    }
+
+    // ==================== state ====================
+    let houses = [];
+    let contracts = [];
+    let convs = [];
+    let prefs = { budget: 6000, commute: 45, needBathroom: true, allowShared: false,
+      soft: { south: false, light: false, highFloor: false, bigArea: false, flexPay: false } };
+    let ctx = { houseId: null, contractId: null };
+    let activeId = null, started = false, currentView = 'chat';
+    let lastPrompt = '', lastFlow = null;
+    let recView = 'mix';
+    let serviceOnline = true;
+    let hf = { q: '', filter: 'all', sort: 'default' };
+    let demoStore = null;
+    function getDemoStore() {
+      if (!demoStore) {
+        const dHouses = demoHouses('batch');
+        if (dHouses[4]) dHouses[4].source = 'manual';
+        const h0 = dHouses[0];
+        const dContract = buildBoundContract('北京市房屋租赁合同（望京）.pdf', '上传', '2.4 MB', h0.id);
+        h0.contractId = dContract.id;
+        demoStore = { houses: dHouses, contracts: [dContract], targetHouse: h0, targetContract: dContract };
+      }
+      return demoStore;
+    }
+    const getHouse = id => houses.find(h => h.id === id) || (demoStore && demoStore.houses.find(h => h.id === id));
+    const getContract = id => contracts.find(c => c.id === id) || (demoStore && demoStore.contracts.find(c => c.id === id));
+    const activeHouses = () => houses.filter(h => h.status === 'active');
+    const isLiveHouse = id => houses.some(h => h.id === id);
+    function comparisonMissingFields(h) {
+      const missing = [];
+      if (h.rent == null) missing.push('租金');
+      if (h.commuteMin == null) missing.push('通勤');
+      if (prefs.needBathroom && h.bathroom !== true && h.bathroom !== false) missing.push('独立卫浴');
+      return missing;
+    }
+    const comparableHouses = () => activeHouses().filter(h => comparisonMissingFields(h).length === 0);
+
+    // ==================== composer ====================
+    const composer = document.getElementById('composerTpl').content.firstElementChild;
+    document.getElementById('heroSlot').appendChild(composer);
+    const input = document.getElementById('chatInput');
+    const fileInput = document.getElementById('fileInput');
+
+    function submitInput() {
+      const text = input.value.trim();
+      const atts = pendingAttachments.splice(0);
+      renderPendingChips();
+      if (!text && !atts.length) return;
+      input.value = '';
+      if (text) route(text);
+      atts.forEach(a => a.kind === 'image' ? imageFlow(a.file, a.url) : uploadFlow(a.file));
+    }
+    function handleEnter(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitInput(); } }
+
+    function route(text) {
+      if (text.length > 150 && /甲方|乙方|租赁合同|出租人|承租人/.test(text)) { pastedContractFlow(text); return; }
+      if (/(预算|通勤|推荐|筛选|对比|比较|帮我选)/.test(text) && /\d/.test(text)) { recommendFlow(text); return; }
+      if (/房源|地铁|租金|押[一二三两]付|通勤.*分钟/.test(text) && text.length > 30) { pastedHousesFlow(text); return; }
+      send(text);
+    }
+
+    // ==================== view switching ====================
+    const VIEWS = ['chat', 'houses', 'contracts'];
+    const VIEW_TITLES = { houses: '本次候选房源', contracts: '本次合同' };
+    function switchView(v) {
+      currentView = v;
+      VIEWS.forEach(x => document.getElementById('view-' + x).classList.toggle('hidden', x !== v));
+      document.querySelectorAll('#mainNav .nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+      if (v === 'chat') {
+        const c = convs.find(c => c.id === activeId);
+        document.getElementById('pageTitle').innerText = c ? c.title : '新对话';
+        document.getElementById('titleEditBtn').style.display = '';
+      } else {
+        document.getElementById('pageTitle').innerText = VIEW_TITLES[v];
+        document.getElementById('titleEditBtn').style.display = 'none';
+        if (v === 'houses') renderHouses();
+        if (v === 'contracts') renderContracts();
+      }
+    }
+    function renderNavCounts() {
+      const houseCount = document.getElementById('houseCount');
+      const contractCount = document.getElementById('contractCount');
+      if (houseCount) houseCount.innerText = activeHouses().length;
+      if (contractCount) contractCount.innerText = contracts.length;
+    }
+
+    // ==================== conversations ====================
+    function renderChatList() {
+      const box = document.getElementById('chatList');
+      if (!convs.length) {
+        box.innerHTML = '<div class="text-[11px] text-gray-300 px-3 py-2">暂无历史对话</div>';
+        return;
+      }
+      box.innerHTML = convs.map(c => `
+        <div class="chat-item group relative">
+          <button onclick="openConversation('${c.id}')" class="w-full text-left pl-3 pr-14 py-2 rounded-lg text-[13px] truncate transition-colors ${c.id === activeId ? 'text-gray-800 bg-gray-200/60' : 'text-gray-600 hover:bg-gray-200/60'}">
+            <i class="fas ${c.icon} text-[10px] text-gray-400 mr-2"></i>${esc(c.title)}
+          </button>
+          <div class="chat-ops absolute right-1.5 top-1/2 -translate-y-1/2 flex gap-0.5">
+            <button onclick="event.stopPropagation(); renameConv('${c.id}')" title="重命名" class="w-6 h-6 rounded-md text-gray-400 hover:text-gray-700 hover:bg-white flex items-center justify-center"><i class="fas fa-pen text-[10px]"></i></button>
+            <button onclick="event.stopPropagation(); askDeleteConv('${c.id}')" title="删除" class="w-6 h-6 rounded-md text-gray-400 hover:text-red-500 hover:bg-white flex items-center justify-center"><i class="fas fa-trash-can text-[10px]"></i></button>
+          </div>
+        </div>`).join('');
+    }
+    function saveCurrent() {
+      if (!activeId) return;
+      const c = convs.find(c => c.id === activeId);
+      if (c) { c.html = document.getElementById('thread').innerHTML; c.started = started; c.seed = null; }
+    }
+    function showThread(html) {
+      document.getElementById('emptyState').classList.add('hidden');
+      const th = document.getElementById('thread');
+      th.classList.remove('hidden');
+      th.innerHTML = html || '';
+      document.getElementById('dock').classList.remove('hidden');
+      document.getElementById('dockSlot').appendChild(composer);
+      renderCtxChips();
+      scrollBottom();
+    }
+    function showEmpty() {
+      document.getElementById('emptyState').classList.remove('hidden');
+      document.getElementById('thread').classList.add('hidden');
+      document.getElementById('thread').innerHTML = '';
+      document.getElementById('dock').classList.add('hidden');
+      document.getElementById('heroSlot').appendChild(composer);
+      renderNavCounts();
+    }
+    function newChat() {
+      cancelActiveTask();
+      saveCurrent();
+      activeId = null; started = false;
+      ctx.houseId = null; ctx.contractId = null;
+      renderCtxChips();
+      pendingAttachments.forEach(a => a.url && URL.revokeObjectURL(a.url));
+      pendingAttachments = [];
+      renderPendingChips();
+      switchView('chat');
+      document.getElementById('pageTitle').innerText = '新对话';
+      showEmpty();
+      renderChatList();
+      renderNavCounts();
+    }
+    function ensureConv(title, icon) {
+      if (activeId && started) return;
+      const c = { id: nid(), title, icon, html: null, started: false };
+      convs.unshift(c);
+      activeId = c.id;
+      document.getElementById('pageTitle').innerText = title;
+      renderChatList();
+    }
+    function openConversation(id) {
+      if (id === activeId && started) { switchView('chat'); return; }
+      cancelActiveTask();
+      saveCurrent();
+      const c = convs.find(c => c.id === id);
+      if (!c) return;
+      activeId = id; started = true;
+      switchView('chat');
+      document.getElementById('pageTitle').innerText = c.title;
+      if (c.html == null) c.html = buildSeed(c.seed);
+      showThread(c.html);
+      renderChatList();
+    }
+    function renameConv(id) {
+      const c = convs.find(c => c.id === id);
+      const name = prompt('重命名会话', c.title);
+      if (name && name.trim()) {
+        c.title = name.trim();
+        if (id === activeId) document.getElementById('pageTitle').innerText = c.title;
+        renderChatList();
+        toast('已重命名');
+      }
+    }
+    function renameActiveConv() { if (activeId) renameConv(activeId); else toast('当前是未保存的新对话'); }
+    function askDeleteConv(id) {
+      const c = convs.find(c => c.id === id);
+      askConfirm('删除会话', `确定删除「${c.title}」吗？会话记录不可恢复；候选房源与合同仍保留在本次工作台。`, () => {
+        convs = convs.filter(x => x.id !== id);
+        if (activeId === id) newChat();
+        renderChatList();
+        toast('会话已删除');
+      });
+    }
+
+    // ==================== message builders ====================
+    function scrollBottom() { const v = document.getElementById('chatView'); v.scrollTop = v.scrollHeight; }
+    function userMsgHTML(html) { return `<div class="flex justify-end msg-enter"><div class="max-w-[85%]">${html}</div></div>`; }
+    function aiMsgHTML(html, withActions) {
+      return `<div class="flex gap-3.5 msg-enter ai-msg group">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm"><i class="fas fa-house-signal text-[10px]"></i></div>
+        <div class="flex-1 min-w-0 pt-0.5">
+          <div class="ai-body">${html}</div>
+          ${withActions ? `
+          <div class="msg-actions flex items-center gap-1 mt-2">
+            <button onclick="copyMsg(this)" title="复制" class="w-7 h-7 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-copy text-[11px]"></i></button>
+            <button onclick="regenerate()" title="重新生成" class="w-7 h-7 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-rotate-right text-[11px]"></i></button>
+            <button onclick="toast('感谢反馈（演示）')" title="有帮助" class="w-7 h-7 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"><i class="fas fa-thumbs-up text-[11px]"></i></button>
+          </div>` : ''}
+        </div></div>`;
+    }
+    function textBubble(text) { return `<div class="text-[14px] text-gray-800 leading-relaxed bg-gray-100 rounded-2xl rounded-tr-md px-4 py-2.5">${esc(text).replace(/\n/g, '<br>')}</div>`; }
+    function addUser(html) {
+      document.getElementById('thread').insertAdjacentHTML('beforeend', userMsgHTML(html));
+      scrollBottom();
+      return document.getElementById('thread').lastElementChild;
+    }
+    function addAI(html, withActions) {
+      document.getElementById('thread').insertAdjacentHTML('beforeend', aiMsgHTML(html, withActions));
+      scrollBottom();
+      return document.getElementById('thread').lastElementChild;
+    }
+    function copyMsg(btn) {
+      const body = btn.closest('.ai-msg').querySelector('.ai-body');
+      navigator.clipboard?.writeText(body.innerText);
+      btn.innerHTML = '<i class="fas fa-check text-[11px] text-green-500"></i>';
+      setTimeout(() => btn.innerHTML = '<i class="fas fa-copy text-[11px]"></i>', 1500);
+      toast('已复制到剪贴板');
+    }
+    function regenerate() {
+      const msgs = document.getElementById('thread').querySelectorAll('.ai-msg');
+      if (msgs.length) msgs[msgs.length - 1].remove();
+      if (lastFlow) { const f = lastFlow; lastFlow = null; f(true); }
+      else if (lastPrompt) send(lastPrompt, true);
+    }
+
+    // ==================== task control（流式 / 停止 / 隔离） ====================
+    let activeTask = null;
+    function setGenerating(on) {
+      const btn = document.getElementById('sendBtn');
+      if (!btn) return;
+      if (on) {
+        btn.innerHTML = '<i class="fas fa-stop text-[10px]"></i>';
+        btn.title = '停止生成';
+        btn.onclick = stopGenerating;
+      } else {
+        btn.innerHTML = '<i class="fas fa-arrow-up text-xs"></i>';
+        btn.title = '发送';
+        btn.onclick = submitInput;
+        activeTask = null;
+      }
+    }
+    function cancelActiveTask() {
+      if (activeTask) {
+        if (activeTask.type === 'timeout') clearTimeout(activeTask.id);
+        else clearInterval(activeTask.id);
+        if (activeTask.onStop) activeTask.onStop();
+        activeTask = null;
+        setGenerating(false);
+      }
+    }
+    function stopGenerating() { cancelActiveTask(); toast('已停止生成，已输出的内容保留'); }
+
+    function beginChat(fallbackTitle) {
+      if (!started) {
+        started = true;
+        if (!activeId) ensureConv(fallbackTitle || '新对话', 'fa-message');
+        showThread('');
+      }
+    }
+    function streamAnswer(html, taskConvId = activeId) {
+      const msg = addAI('<div class="text-[14px] text-gray-800 leading-7 answer-stream cursor-blink"></div>', true);
+      const el = msg.querySelector('.answer-stream');
+      let i = 0;
+      const iv = setInterval(() => {
+        if (activeId !== taskConvId) { clearInterval(iv); return; }
+        i += Math.max(2, Math.round(html.length / 90));
+        el.innerHTML = html.slice(0, i);
+        scrollBottom();
+        if (i >= html.length) {
+          clearInterval(iv);
+          el.classList.remove('cursor-blink');
+          setGenerating(false);
+        }
+      }, 28);
+      activeTask = { type: 'interval', id: iv, convId: taskConvId, onStop: () => {
+        el.classList.remove('cursor-blink');
+        el.innerHTML += '<div class="text-[11px] text-gray-400 mt-2"><i class="fas fa-circle-stop mr-1"></i>已停止生成，可继续追问或重新生成</div>';
+      }};
+      setGenerating(true);
+    }
+    function runSteps(steps, done) {
+      const taskConvId = activeId;
+      const msg = addAI('');
+      let i = 0;
+      function render() {
+        if (activeId !== taskConvId) return;
+        const rows = steps.map((s, j) => `
+          <div class="flex items-center gap-2.5 text-[13px] ${j < i ? 'text-green-600' : j === i ? 'text-gray-800' : 'text-gray-300'}">
+            <i class="fas ${j < i ? 'fa-circle-check' : j === i ? 'fa-circle-notch fa-spin' : 'fa-circle'} w-4 text-center"></i> ${s}
+          </div>`).join('');
+        const body = msg.querySelector('.ai-body');
+        if (body) body.innerHTML = `<div class="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 space-y-2 font-medium inline-block" role="status" aria-live="polite">${rows}</div>`;
+        scrollBottom();
+      }
+      render();
+      const tick = setInterval(() => {
+        if (activeId !== taskConvId) { clearInterval(tick); return; }
+        i++;
+        if (i >= steps.length) {
+          clearInterval(tick);
+          setGenerating(false);
+          msg.remove();
+          if (activeId === taskConvId) done();
+        } else render();
+      }, 650);
+      activeTask = { type: 'interval', id: tick, convId: taskConvId, onStop: () => {
+        const body = msg.querySelector('.ai-body');
+        if (body) body.innerHTML = '<div class="text-[13px] text-gray-400 py-1"><i class="fas fa-circle-stop mr-1.5"></i>分析已取消，可点击重新生成重试</div>';
+      }};
+      setGenerating(true);
+    }
+
+    // ==================== 服务异常模拟 ====================
+    function toggleService() {
+      serviceOnline = !serviceOnline;
+      const el = document.getElementById('svcStatus');
+      const dot = document.getElementById('svcDot');
+      const txt = document.getElementById('svcStatusText');
+      if (serviceOnline) {
+        el.className = 'hidden sm:flex items-center gap-1.5 text-[11px] text-gray-400 border border-gray-200 rounded-full px-2.5 py-1 hover:border-gray-300 transition-colors';
+        dot.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>';
+        txt.innerText = 'Agent 在线';
+        toast('服务已恢复（演示）');
+      } else {
+        el.className = 'hidden sm:flex items-center gap-1.5 text-[11px] text-red-500 border border-red-200 bg-red-50 rounded-full px-2.5 py-1 transition-colors';
+        dot.innerHTML = '<span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>';
+        txt.innerText = '服务异常（演示）';
+        toast('已切换为服务异常状态，发送消息将看到失败与重试');
+      }
+    }
+
+    // ==================== 房源解析 ====================
+    function parseHousesInput(text) {
+      let parts = text.split(/[\n;；]+/).map(s => s.trim()).filter(Boolean);
+      if (parts.length <= 2 && /[①②③④⑤⑥⑦⑧⑨⑩]|(?<!\d)\d+[.、](?!\d)/.test(text)) {
+        parts = text.split(/(?=[①②③④⑤⑥⑦⑧⑨⑩]|(?<!\d)\d+[.、](?!\d)|(?<!\d)[(（\[【]\d+[)）\]】]|(?:^|\s)房源[A-Za-z0-9一二三四五六]?[：:])/).map(s => s.trim()).filter(Boolean);
+      }
+      function isHouseLine(p) {
+        if (/^(?:我输入|帮我|请帮|房源对比|有三套|这几套|三套房源|房源如下|对比)/.test(p) && !/(?:平|㎡|开间|次卧|主卧|一居|两居|\/月)/.test(p)) return false;
+        const hasPrice = /(?:\d{3,5}\s*(?:\/月|元\/月|元)|押[一二三两]付)/i.test(p);
+        const hasTypeOrArea = /(?:\d+(?:\.\d+)?\s*(?:平|㎡|平米)|一居|两居|三居|四居|开间|次卧|主卧|合租|整租)/.test(p);
+        const hasCommuteOrFloor = /(?:地铁|\d+\s*分钟|\d+楼|\d+层|[东西南北]向)/.test(p);
+        return (hasPrice && hasTypeOrArea) || (hasPrice && hasCommuteOrFloor) || (hasTypeOrArea && hasCommuteOrFloor);
+      }
+      const out = [];
+      parts.filter(isHouseLine).forEach((part, idx) => {
+        let clean = part.replace(/^(?:[①②③④⑤⑥⑦⑧⑨⑩]|(?:\d+|[一二三四五六七八九十])[.、\s]+|[(（\[【]?\d+[)）\]】]|房源[A-Za-z0-9一二三四五六]?[：:]\s*)+/, '').trim();
+        if (!clean) return;
+        const h = mkHouse({ source: 'batch', raw: clean });
+        const rMatch = clean.match(/(\d{3,5})\s*(?:\/月|元\/月|元)/);
+        if (rMatch) h.rent = parseInt(rMatch[1], 10);
+        const depMatch = clean.match(/(押[一二三两]付[一二三两月六]+|无押金)/);
+        if (depMatch) h.deposit = depMatch[1];
+        const aMatch = clean.match(/(\d+(?:\.\d+)?)\s*(?:平米|平|㎡)/);
+        if (aMatch) h.area = parseFloat(aMatch[1]);
+        const commMatch = clean.match(/(?:地铁\s*|通勤\s*约?)?(\d{1,3})\s*分钟/);
+        if (commMatch) h.commuteMin = parseInt(commMatch[1], 10);
+        const flMatch = clean.match(/(\d+(?:\/\d+)?(?:楼|层))/);
+        if (flMatch) h.floor = flMatch[1];
+        const orMatch = clean.match(/([东西南北]+向)/);
+        if (orMatch) h.orientation = orMatch[1];
+        const layMatch = clean.match(/((?:一|两|三|四)居(?:合租|整租)?(?:次卧|主卧)?|开间|(?:合租|整租)(?:次卧|主卧)|(?:次卧|主卧))/);
+        if (layMatch) h.layout = layMatch[1];
+        if (/独立卫浴|独卫/.test(clean)) h.bathroom = true;
+        if (/无独卫|公用卫浴|共用卫浴/.test(clean)) h.bathroom = false;
+        if (/合租|次卧|主卧/.test(clean)) h.shared = true;
+        if (/整租/.test(clean)) h.shared = false;
+        if (/允许养|可养|宠物友好/.test(clean)) h.pet = '允许宠物';
+        if (/禁止养|不可养|不许养/.test(clean)) h.pet = '禁止宠物';
+        const propMatch = clean.match(/物业费\s*(\d{2,4})/);
+        if (propMatch) h.propertyFee = parseInt(propMatch[1], 10);
+        if (/物业费.{0,6}(房东|甲方)承担|房东承担物业/.test(clean)) h.propertyBear = '房东承担';
+        if (/物业费.{0,6}(租客|乙方|自己)承担|自付物业/.test(clean)) h.propertyBear = '租客承担';
+        const avMatch = clean.match(/(\d{1,2}月\d{1,2}日|随时|尽快)(?:可)?入住/);
+        if (avMatch) h.available = avMatch[0].replace('入住', '') + '可入住';
+        const metroMatch = clean.match(/(\d+号线\S{0,10}站)/);
+        if (metroMatch) h.metro = metroMatch[1];
+        if (/采光好|采光佳/.test(clean)) h.lighting = '采光好';
+        let name = clean.replace(/(\d{3,5}\s*(?:\/月|元).*$)/, '').replace(/(?:押[一二三两]付.*$)/, '').replace(/[，,;；]/g, ' ').trim();
+        if (!name || name.length < 2) {
+          const nm = clean.match(/^([^\d,，\s/]+)/);
+          name = nm ? nm[1] : `房源 ${idx + 1}`;
+        }
+        if (name.length > 18) name = name.slice(0, 18);
+        h.name = name;
+        out.push(h);
+      });
+      return out;
+    }
+
+    const DEMO_BATCH_TEXT = `① 望京南湖东园一居 整租 5800/月 押一付一 68.5平 12/18层 南向 独立卫浴 采光好 地铁14号线望京站350米 通勤35分钟 物业费房东承担 允许养猫 10月1日可入住 家具家电齐全
+② 酒仙桥将府家园开间 整租 4600/月 押一付一 42平 3/6层 东向 独立卫浴 地铁14号线将台站 通勤42分钟 网费50/月 随时可入住 禁止养宠物
+③ 将台两居合租次卧 3800/月 押一付三 18平 8/11层 北向 无独卫 地铁30分钟 中介费半个月租金 限住1人
+④ 大望路现代城一居 整租 6200/月 独立卫浴 通勤22分钟 南向 来自链家链接 押金和物业费待与中介确认
+⑤ 芍药居主卧带独卫 合租 4100/月 押一付一 独立卫浴 通勤40分钟 北向 可养猫 房东直租无中介费`;
+
+    function enrichDemo(list) {
+      const batchId = 'B-' + String(++batchSeq).padStart(3, '0');
+      list.forEach(h => { h.batch = batchId; });
+      const L = list;
+      if (L[0]) Object.assign(L[0], { region: '朝阳·望京', propertyFee: 120, propertyBear: '房东承担', netFee: 0, lighting: '采光好', furniture: '家具家电齐全',
+        verify: ['月租与押金方式需与房东书面确认', '物业费承担方需写入合同', '宠物约定需写入补充协议'],
+        todos: ['确认 10 月 1 日能否准时交房', '询问家电维修责任'] });
+      if (L[1]) Object.assign(L[1], { region: '朝阳·酒仙桥', propertyFee: 80, propertyBear: '租客承担', netFee: 50, available: '随时可入住', pet: '禁止宠物',
+        verify: ['低楼层潮湿情况需实地确认'], todos: ['确认商水商电还是民水民电'] });
+      if (L[2]) Object.assign(L[2], { region: '朝阳·将台', agencyFee: 1900, maxPeople: 1,
+        verify: ['合租公区费用分摊规则待确认', '室友情况未知'], todos: ['确认能否短租', '确认公区保洁频率'] });
+      if (L[3]) Object.assign(L[3], { source: 'link', linkUrl: 'https://bj.lianjia.com/zufang/demo（仅记录来源，不代表实时同步，不表示房源真实有效）', region: '朝阳·大望路',
+        verify: ['押金方式待与中介确认', '物业费金额与承担方待确认', '链接仅作来源记录，房源是否仍在需自行核实'],
+        todos: ['向中介索要费用明细'] });
+      if (L[4]) Object.assign(L[4], { region: '朝阳·芍药居', agencyFee: 0, pet: '可养猫',
+        verify: ['主卧独卫为房东口头承诺，需看房确认'], todos: ['确认合租人数上限'] });
+      return list;
+    }
+    function demoHouses(source) {
+      const list = parseHousesInput(DEMO_BATCH_TEXT);
+      list.forEach(h => { h.source = source || h.source; });
+      return enrichDemo(list);
+    }
+    function fillDemoBatch() {
+      document.getElementById('impBatchText').value = DEMO_BATCH_TEXT;
+      toast('已填入 5 套演示房源，点击「AI 批量提取」继续');
+    }
+
+    // ==================== 导入弹窗 ====================
+    let pendingImport = [];
+    function openImport(tab) {
+      document.getElementById('importModal').classList.remove('hidden');
+      switchImportTab(tab || 'paste');
+    }
+    function closeImport() { document.getElementById('importModal').classList.add('hidden'); pendingImport = []; }
+    function switchImportTab(tab) {
+      document.querySelectorAll('#importTabs .imp-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.querySelectorAll('#importBody [data-panel]').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== tab));
+    }
+    function showImportPanel(name) {
+      document.querySelectorAll('#importBody [data-panel]').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== name));
+    }
+
+    function doParsePaste() {
+      const text = document.getElementById('impPasteText').value.trim();
+      if (!text) { toast('请先粘贴房源描述'); return; }
+      const list = parseHousesInput(text);
+      if (!list.length) { showImportFail('paste', '未能从文本中识别出房源信息，请补充租金、户型或通勤等关键内容后重试。'); return; }
+      const batchId = 'B-' + String(++batchSeq).padStart(3, '0');
+      list.forEach(h => { h.source = 'paste'; h.batch = batchId; });
+      showConfirm(list, '粘贴单条');
+    }
+    function doParseBatch() {
+      const text = document.getElementById('impBatchText').value.trim();
+      if (!text) { toast('请先粘贴多条房源信息'); return; }
+      const isDemo = text.trim() === DEMO_BATCH_TEXT.trim();
+      const list = isDemo ? demoHouses('batch') : parseHousesInput(text);
+      if (!list.length) { showImportFail('batch', '没有识别到有效房源条目，请检查格式（每条至少包含租金或户型信息）。'); return; }
+      if (!isDemo) {
+        const batchId = 'B-' + String(++batchSeq).padStart(3, '0');
+        list.forEach(h => { h.source = 'batch'; h.batch = batchId; });
+      }
+      showConfirm(list, '批量粘贴');
+    }
+    function doManual() {
+      const g = id => document.getElementById(id).value.trim();
+      const err = document.getElementById('manualError');
+      if (!g('mf-name')) { err.innerText = '请填写房源名称'; err.classList.remove('hidden'); return; }
+      if (!g('mf-rent')) { err.innerText = '请填写月租；如确实未知，可先通过「粘贴单条」录入原文并标记待确认'; err.classList.remove('hidden'); return; }
+      err.classList.add('hidden');
+      const floorRaw = g('mf-floor');
+      const orM = floorRaw.match(/([东西南北]+向)/);
+      const h = mkHouse({
+        source: 'manual', name: g('mf-name'), region: g('mf-region'),
+        rent: g('mf-rent') ? parseInt(g('mf-rent'), 10) : null,
+        deposit: g('mf-deposit'),
+        propertyFee: g('mf-property') ? parseInt(g('mf-property'), 10) : null,
+        commuteMin: g('mf-commute') ? parseInt(g('mf-commute'), 10) : null,
+        layout: g('mf-layout'),
+        area: g('mf-area') ? parseFloat(g('mf-area')) : null,
+        floor: floorRaw.replace(/[东西南北]+向/, '').replace(/[·\s]+$/, ''),
+        orientation: orM ? orM[1] : '',
+        available: g('mf-available'),
+        bathroom: document.getElementById('mf-bathroom').checked ? true : null,
+        shared: document.getElementById('mf-shared').checked,
+        pet: document.getElementById('mf-pet').checked ? '允许宠物' : '',
+        raw: '手动填写，无原始文本'
+      });
+      showConfirm([h], '手动填写');
+    }
+    function showImportFail(backTab, reason) {
+      showImportPanel('confirm');
+      document.getElementById('confirmTitle').innerText = '导入失败';
+      document.getElementById('confirmCount').innerText = '';
+      document.getElementById('confirmList').innerHTML = `<div class="text-center py-10">
+        <i class="fas fa-circle-exclamation text-3xl text-red-300 mb-3"></i>
+        <div class="text-[13px] text-gray-700 font-medium">未能加入候选房源</div>
+        <div class="text-[12px] text-gray-400 mt-1.5 max-w-sm mx-auto leading-relaxed">${esc(reason)}</div>
+        <button onclick="showImportPanel('${backTab}')" class="mt-4 text-xs bg-gray-900 text-white rounded-xl px-4 py-2.5">返回修改重试</button>
+      </div>`;
+    }
+
+    function slicePendingImport(limit) {
+      if (limit > 0 && pendingImport.length > limit) {
+        pendingImport = pendingImport.slice(0, limit);
+        showConfirm(pendingImport, document.getElementById('confirmTitle')?.dataset?.source || '导入候选房源');
+        toast(`已截取前 ${limit} 套，满足 10 套单次比较上限`);
+      }
+    }
+
+    function showConfirm(list, sourceLabel) {
+      pendingImport = list;
+      showImportPanel('confirm');
+      const isDemoFile = sourceLabel.includes('演示解析') || list.some(h => (h.source || '').includes('file-xls') || (h.source || '').includes('file-doc'));
+      const titleEl = document.getElementById('confirmTitle');
+      titleEl.innerText = `AI 提取结果 · 识别到 ${list.length} 套房源（来源：${sourceLabel}）`;
+      titleEl.dataset.source = sourceLabel;
+      const curCount = activeHouses().length;
+      const totalCount = curCount + list.length;
+      document.getElementById('confirmCount').innerText = `确认后新增 ${list.length} 套 · 当前已有 ${curCount} 套（比较上限 10 套）`;
+
+      const demoBanner = isDemoFile ? `
+        <div class="mb-3 text-[12px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-start gap-2">
+          <i class="fas fa-flask mt-0.5 text-amber-600 shrink-0"></i>
+          <div><b>原型演示解析提示：</b>当前前端原型未接入真实文件解析服务，已提取生成 <b>${list.length} 套演示房源</b>，核对后可加入候选。</div>
+        </div>` : '';
+
+      const overLimitBanner = totalCount > 10 ? `
+        <div class="mb-3 text-[12px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-start gap-2">
+          <i class="fas fa-triangle-exclamation mt-0.5 text-amber-600 shrink-0"></i>
+          <div class="flex-1">
+            <div class="font-semibold">候选上限与降级说明（当前已有 ${curCount} 套，本次新增 ${list.length} 套，确认后达 ${totalCount} 套）</div>
+            <div class="text-[11px] text-amber-700 mt-0.5 leading-relaxed">
+              候选房源库允许保存超过 10 套房源，但<b>智能推荐与横向比较单次最多支持 10 套</b>。导入后若超过 10 套，需在房源库中移除或精简至 10 套以内再开始筛选。
+            </div>
+            ${(10 - curCount) > 0 && list.length > (10 - curCount) ? `
+              <div class="mt-2">
+                <button type="button" onclick="slicePendingImport(${10 - curCount})" class="text-[11px] font-medium bg-amber-200/70 hover:bg-amber-200 text-amber-900 rounded-lg px-2.5 py-1 transition-colors">
+                  <i class="fas fa-scissors mr-1"></i>仅导入前 ${10 - curCount} 套（凑满 10 套比较上限）
+                </button>
+              </div>` : ''}
+          </div>
+        </div>` : '';
+
+      const cardsHtml = list.map((h, i) => {
+        const dup = activeHouses().find(x => x.rent === h.rent && x.rent != null && (x.name === h.name || (x.region && h.region && x.region === h.region)));
+        const miss = missingFields(h);
+        return `<div class="border border-gray-200 rounded-2xl p-4 ${dup ? 'border-amber-300 bg-amber-50/40' : ''}">
+          <div class="flex items-center gap-2 mb-3 flex-wrap">
+            <span class="text-[10px] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5">#${i + 1}</span>
+            <input id="ci-name-${i}" value="${esc(h.name || '')}" class="flex-1 min-w-[140px] text-[13px] font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-brand-400 outline-none px-1 py-0.5" placeholder="房源名称">
+            ${dup ? `<span class="text-[10px] font-semibold text-amber-600 bg-amber-100 border border-amber-200 rounded-full px-2 py-0.5"><i class="fas fa-copy mr-1"></i>疑似与「${esc(dup.name)}」重复，确认时将跳过</span>` : ''}
+            ${miss.length ? `<span class="text-[10px] text-amber-500">待确认：${miss.slice(0, 4).join('、')}${miss.length > 4 ? ' 等' : ''}</span>` : '<span class="text-[10px] text-green-600"><i class="fas fa-check mr-0.5"></i>关键字段完整</span>'}
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            ${ciInput(i, 'rent', '租金(元/月)', h.rent, 'number')}
+            ${ciInput(i, 'deposit', '押金/付款方式', h.deposit, 'text')}
+            ${ciInput(i, 'property', '物业费(元/月)', h.propertyFee, 'number')}
+            ${ciInput(i, 'commute', '通勤(分钟)', h.commuteMin, 'number')}
+            ${ciInput(i, 'layout', '户型', h.layout, 'text')}
+          </div>
+          ${h.raw && h.raw !== '手动填写，无原始文本' ? `<div class="mt-2.5 text-[11px] text-gray-400 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed"><i class="fas fa-quote-left mr-1 text-[9px]"></i>原始内容：<mark class="raw">${esc(h.raw.slice(0, 90))}${h.raw.length > 90 ? '…' : ''}</mark></div>` : ''}
+        </div>`;
+      }).join('');
+      document.getElementById('confirmList').innerHTML = demoBanner + overLimitBanner + cardsHtml;
+    }
+    function ciInput(i, key, label, val, type) {
+      const empty = val === null || val === '' || val === undefined;
+      return `<label class="text-[10px] ${empty ? 'text-amber-600' : 'text-gray-400'}">${label}${empty ? '·待确认' : ''}
+        <input id="ci-${key}-${i}" type="${type}" value="${empty ? '' : esc(val)}" placeholder="待确认"
+          class="mt-1 w-full bg-gray-50 border ${empty ? 'border-amber-200' : 'border-gray-200'} rounded-lg px-2.5 py-2 text-[12px] text-gray-800 outline-none focus:border-brand-400 focus:bg-white"></label>`;
+    }
+    function confirmImport() {
+      if (!pendingImport.length) return;
+      let added = 0, skipped = 0;
+      pendingImport.forEach((h, i) => {
+        const gv = k => (document.getElementById(`ci-${k}-${i}`)?.value || '').trim();
+        h.name = gv('name') || h.name;
+        h.rent = gv('rent') ? parseInt(gv('rent'), 10) : null;
+        h.deposit = gv('deposit') || null;
+        h.propertyFee = gv('property') ? parseInt(gv('property'), 10) : null;
+        h.commuteMin = gv('commute') ? parseInt(gv('commute'), 10) : null;
+        h.layout = gv('layout') || null;
+        const dup = activeHouses().find(x => x.rent === h.rent && x.rent != null && x.name === h.name);
+        if (dup) { skipped++; return; }
+        houses.push(h);
+        added++;
+      });
+      closeImport();
+      renderNavCounts();
+      if (currentView === 'houses') renderHouses();
+      const curCount = activeHouses().length;
+      let msg = skipped ? `已加入 ${added} 套，${skipped} 套因重复被跳过` : `已加入 ${added} 套候选房源`;
+      if (curCount > 10) msg += `（当前共 ${curCount} 套，超出单次比较上限 10 套，筛选推荐前需先精简）`;
+      toast(msg);
+      document.getElementById('impPasteText').value = '';
+      document.getElementById('impBatchText').value = '';
+    }
+
+    // 文件导入
+    const houseFileInput = document.getElementById('houseFileInput');
+    houseFileInput.addEventListener('change', () => {
+      const f = houseFileInput.files[0];
+      houseFileInput.value = '';
+      if (f) parseHouseFile(f);
+    });
+    function parseHouseFile(file) {
+      const ext = (file.name.match(/\.([^.]+)$/) || [])[1]?.toLowerCase() || '';
+      const kind = ['xlsx', 'xls'].includes(ext) ? 'file-xlsx' : ['docx', 'doc'].includes(ext) ? 'file-docx' : 'file-txt';
+      const box = document.getElementById('fileParseState');
+      const steps = ['上传文件（' + file.name + '）', kind === 'file-xlsx' ? '解析表格行列并映射字段' : kind === 'file-docx' ? '解析文档段落并识别房源条目' : '读取文本并识别房源条目', 'AI 提取字段'];
+      let i = 0;
+      box.innerHTML = `<div class="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 space-y-2 font-medium" id="fps"></div>`;
+      const render = () => {
+        const el = document.getElementById('fps');
+        if (el) el.innerHTML = steps.map((s, j) => `
+          <div class="flex items-center gap-2.5 text-[13px] ${j < i ? 'text-green-600' : j === i ? 'text-gray-800' : 'text-gray-300'}">
+            <i class="fas ${j < i ? 'fa-circle-check' : j === i ? 'fa-circle-notch fa-spin' : 'fa-circle'} w-4 text-center"></i> ${s}
+          </div>`).join('');
+      };
+      render();
+      const tick = setInterval(() => {
+        i++;
+        if (i >= steps.length) {
+          clearInterval(tick);
+          if (kind === 'file-txt') {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const list = parseHousesInput(String(reader.result || ''));
+              box.innerHTML = '';
+              if (!list.length) { showImportFail('file', '文件中未识别到有效房源条目，请确认每行包含租金或户型信息。'); return; }
+              const batchId = 'B-' + String(++batchSeq).padStart(3, '0');
+              list.forEach(h => { h.source = kind; h.batch = batchId; });
+              showConfirm(list, SOURCE_LABEL[kind] + '：' + file.name);
+            };
+            reader.onerror = () => { box.innerHTML = ''; showImportFail('file', '文件读取失败，请重试或改用粘贴。'); };
+            reader.readAsText(file);
+          } else {
+            // Excel / Word：原型以演示解析呈现，产出可确认字段
+            const list = demoHouses(kind).slice(0, 3);
+            list.forEach(h => { h.source = kind; if (!h.name.includes('演示解析')) h.name += '（演示解析）'; });
+            box.innerHTML = '';
+            showConfirm(list, SOURCE_LABEL[kind] + '：' + file.name + '（演示解析）');
+          }
+        } else render();
+      }, 550);
+    }
+
+    // ==================== 候选房源列表 ====================
+    function renderHouses() {
+      const box = document.getElementById('houseList');
+      const hint = document.getElementById('compareHint');
+      const all = activeHouses();
+      const comparable = comparableHouses();
+      const pending = all.length - comparable.length;
+      const pendingText = pending ? `，${pending} 套待完善` : '';
+      if (!all.length) hint.innerHTML = '';
+      else if (comparable.length < 3) hint.innerHTML = `<div class="text-[12px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-center gap-2"><i class="fas fa-circle-info"></i>当前有 ${comparable.length} 套关键字段完整可比较${pendingText}，至少需要 3 套完整候选。</div>`;
+      else if (comparable.length > 10) hint.innerHTML = `<div class="text-[12px] text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-center gap-2"><i class="fas fa-triangle-exclamation"></i>当前有 ${comparable.length} 套关键字段完整候选，超出比较上限（10 套）${pendingText}，请移除部分房源或拆分批次后再比较。</div>`;
+      else hint.innerHTML = `<div class="text-[12px] text-green-700 bg-green-50 border border-green-100 rounded-xl px-4 py-3 flex items-center justify-between"><span><i class="fas fa-circle-check mr-1"></i>${comparable.length} 套关键字段完整候选可进入比较（3—10 套）${pendingText}</span><button onclick="startRecommend()" class="text-green-800 font-semibold hover:underline">开始筛选 →</button></div>`;
+
+      let list = houses.slice();
+      if (hf.filter === 'dropped') list = list.filter(h => h.status === 'dropped');
+      else list = list.filter(h => h.status === 'active');
+      const q = hf.q.trim();
+      if (q) list = list.filter(h => (h.name + h.region + h.notes + h.address).includes(q));
+      if (hf.filter === 'whole') list = list.filter(h => !h.shared);
+      if (hf.filter === 'shared') list = list.filter(h => h.shared);
+      if (hf.filter === 'bathroom') list = list.filter(h => h.bathroom === true);
+      if (hf.filter === 'incomplete') list = list.filter(h => completeness(h) < 70);
+      const sorters = {
+        rent: (a, b) => (a.rent || 9e9) - (b.rent || 9e9),
+        cost: (a, b) => monthlyCost(a).sum - monthlyCost(b).sum,
+        commute: (a, b) => (a.commuteMin || 999) - (b.commuteMin || 999),
+        completeness: (a, b) => completeness(b) - completeness(a)
+      };
+      if (sorters[hf.sort]) list.sort(sorters[hf.sort]);
+
+      if (!list.length) {
+        box.innerHTML = `<div class="text-center py-16 text-gray-400">
+          <i class="fas fa-building-circle-exclamation text-3xl mb-3 text-gray-200"></i>
+          <div class="text-[13px]">${houses.length ? '没有匹配的房源，试试调整筛选条件' : '还没有候选房源'}</div>
+          ${houses.length ? '' : `<button onclick="openImport('batch')" class="mt-4 text-xs bg-gray-900 text-white rounded-xl px-4 py-2.5">导入第一批房源</button>`}</div>`;
+        return;
+      }
+      box.innerHTML = list.map(h => {
+        const comp = completeness(h);
+        const miss = missingFields(h);
+        const mc = monthlyCost(h);
+        const dropped = h.status === 'dropped';
+        return `<div class="bg-white border ${dropped ? 'border-gray-100 opacity-60' : 'border-gray-200'} rounded-2xl p-4 hover:shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow">
+          <div class="flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-xl ${dropped ? 'bg-gray-50 text-gray-300 border-gray-200' : 'bg-emerald-50 text-emerald-600 border-emerald-100'} border flex items-center justify-center shrink-0"><i class="fas fa-building"></i></div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5">${h.no}</span>
+                <span class="text-[14px] font-medium text-gray-900 truncate">${esc(h.name)}</span>
+                ${ctx.houseId === h.id ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-600 border border-brand-100">当前房源</span>' : ''}
+                ${dropped ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200">已放弃</span>' : ''}
+                ${comp < 70 ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-100">信息不完整</span>' : ''}
+              </div>
+              <div class="text-[11px] text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
+                <span><i class="fas fa-arrow-up-from-bracket text-[9px] mr-1"></i>${SOURCE_LABEL[h.source] || h.source}</span>
+                ${h.batch ? `<span>批次 ${h.batch}</span>` : ''}
+                <span>完整度 <b class="${comp >= 80 ? 'text-green-600' : comp >= 60 ? 'text-amber-600' : 'text-red-500'}">${comp}%</b></span>
+                ${miss.length ? `<span class="text-amber-500">缺：${miss.slice(0, 3).join('、')}${miss.length > 3 ? ' 等' : ''}</span>` : ''}
+              </div>
+              <div class="text-[12px] text-gray-600 mt-2 flex items-center gap-x-3 gap-y-1 flex-wrap">
+                <span><b class="text-gray-900">${h.rent ? fmt(h.rent) + ' 元/月' : '租金待确认'}</b> · ${esc(h.deposit || '押金待确认')}</span>
+                <span>月度总成本 ${mc.unknown.length ? '≈' : ''}<b>${fmt(mc.sum)}</b> 元${mc.unknown.length ? `<span class="text-amber-500 text-[10px]">（${mc.unknown.join('、')}待确认）</span>` : ''}</span>
+                <span>${h.commuteMin ? '通勤 ' + h.commuteMin + ' 分钟' : '通勤待确认'}</span>
+                ${h.shared ? '<span class="text-purple-500">合租</span>' : '<span>整租</span>'}
+                ${h.bathroom === true ? '<span>独立卫浴</span>' : h.bathroom === false ? '<span class="text-amber-500">无独卫</span>' : ''}
+              </div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0 flex-wrap justify-end max-w-[220px]">
+              <button onclick="openHouseDrawer('${h.id}')" class="h-8 px-2.5 rounded-lg text-xs text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"><i class="fas fa-eye mr-1"></i>详情</button>
+              ${!dropped && ctx.houseId !== h.id ? `<button onclick="setTargetHouse('${h.id}')" class="h-8 px-2.5 rounded-lg text-xs text-brand-600 hover:bg-brand-50 transition-colors"><i class="fas fa-crosshairs mr-1"></i>设为目标</button>` : ''}
+              ${!dropped ? `<button onclick="bindContractEntry('${h.id}')" class="h-8 px-2.5 rounded-lg text-xs text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"><i class="fas fa-file-contract mr-1"></i>${h.contractId ? '查看核验' : '绑定合同'}</button>` : ''}
+              <button onclick="askRemoveHouse('${h.id}')" title="移除" class="w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"><i class="fas fa-trash-can text-[11px]"></i></button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function askRemoveHouse(id) {
+      if (!isLiveHouse(id)) { toast('历史演示数据仅供查看，请先导入到本次工作台'); return; }
+      const h = getHouse(id);
+      askConfirm('移除房源', `确定把「${h.name}」移出本次候选吗？关联的备注与看房记录会一并移除。`, () => {
+        houses = houses.filter(x => x.id !== id);
+        if (ctx.houseId === id) { ctx.houseId = null; ctx.contractId = null; }
+        renderNavCounts();
+        renderHouses();
+        renderCtxChips();
+        toast('已移出候选');
+      });
+    }
+
+    // ==================== 房源详情抽屉 ====================
+    let drawerHouseId = null;
+    let lastActiveElement = null;
+    function openHouseDrawer(id, anchor) {
+      const h = getHouse(id);
+      if (!h) return;
+      lastActiveElement = document.activeElement;
+      drawerHouseId = id;
+      document.getElementById('houseDrawerTitle').innerText = h.name;
+      document.getElementById('houseDrawerMeta').innerText = `${h.no} · ${SOURCE_LABEL[h.source] || h.source}${h.batch ? ' · 批次 ' + h.batch : ''}`;
+      renderHouseDrawer();
+      const drawer = document.getElementById('houseDrawer');
+      drawer.classList.remove('hidden');
+      drawer.setAttribute('aria-hidden', 'false');
+      drawer.removeAttribute('inert');
+      document.getElementById('houseOverlay').classList.remove('hidden');
+      requestAnimationFrame(() => {
+        drawer.classList.remove('translate-x-full');
+      });
+      if (anchor) setTimeout(() => document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 350);
+      drawer.querySelector('button')?.focus();
+    }
+    function closeHouseDrawer() {
+      const drawer = document.getElementById('houseDrawer');
+      drawer.classList.add('translate-x-full');
+      drawer.setAttribute('aria-hidden', 'true');
+      drawer.setAttribute('inert', '');
+      document.getElementById('houseOverlay').classList.add('hidden');
+      setTimeout(() => {
+        if (drawer.classList.contains('translate-x-full')) drawer.classList.add('hidden');
+      }, 300);
+      drawerHouseId = null;
+      if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+        lastActiveElement.focus();
+        lastActiveElement = null;
+      }
+    }
+    function fieldRow(label, value, opts = {}) {
+      const empty = value === null || value === '' || value === undefined;
+      return `<div class="flex justify-between gap-3 py-1.5 ${opts.anchor ? 'relative' : ''}" ${opts.anchor ? `id="${opts.anchor}"` : ''}>
+        <span class="text-gray-400 shrink-0">${label}</span>
+        <span class="text-right ${empty ? 'text-amber-500' : 'text-gray-800'} ${opts.bold ? 'font-semibold' : ''}">${empty ? '待确认' : esc(value)}</span>
+      </div>`;
+    }
+    function renderHouseDrawer() {
+      const h = getHouse(drawerHouseId);
+      if (!h) return;
+      const comp = completeness(h);
+      const miss = missingFields(h);
+      const mc = monthlyCost(h);
+      const oc = oneTimeCost(h);
+      const boundContract = h.contractId ? getContract(h.contractId) : null;
+      document.getElementById('houseDrawerBody').innerHTML = `
+      <div class="p-5 space-y-5 text-[13px]">
+        <!-- 数据状态 -->
+        <section>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-[12px] font-semibold text-gray-900"><i class="fas fa-chart-pie mr-1.5 text-brand-600"></i>信息完整度</h4>
+            <span class="text-[11px] font-semibold ${comp >= 80 ? 'text-green-600' : comp >= 60 ? 'text-amber-600' : 'text-red-500'}">${comp}%</span>
+          </div>
+          <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full ${comp >= 80 ? 'bg-green-400' : comp >= 60 ? 'bg-amber-400' : 'bg-red-300'}" style="width:${comp}%"></div></div>
+          ${miss.length ? `<div class="mt-2 flex flex-wrap gap-1.5">${miss.map(m => `<span class="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5">缺 ${m}</span>`).join('')}</div>` : '<div class="mt-2 text-[11px] text-green-600"><i class="fas fa-check mr-1"></i>关键字段均已填写</div>'}
+          <div class="mt-2 text-[10px] text-gray-300">不承诺房源真实有效，仅展示来源、完整度与待核实项</div>
+        </section>
+
+        <!-- 来源与证据 -->
+        <section class="bg-gray-50 rounded-2xl p-4">
+          <h4 class="text-[12px] font-semibold text-gray-900 mb-2"><i class="fas fa-fingerprint mr-1.5 text-brand-600"></i>来源与证据</h4>
+          ${fieldRow('导入来源', SOURCE_LABEL[h.source] || h.source)}
+          ${h.batch ? fieldRow('导入批次', h.batch) : ''}
+          ${h.linkUrl ? `<div class="text-[11px] text-gray-500 mt-1.5 break-all"><i class="fas fa-link mr-1 text-[9px]"></i>${esc(h.linkUrl)}</div>` : ''}
+          ${h.raw && h.raw !== '手动填写，无原始文本' ? `<div class="mt-2 text-[11px] text-gray-500 leading-relaxed border-t border-gray-100 pt-2"><i class="fas fa-quote-left mr-1 text-[9px]"></i>原始内容：<mark class="raw">${esc(h.raw)}</mark></div>` : ''}
+        </section>
+
+        <!-- 价格 -->
+        <section>
+          <h4 class="text-[12px] font-semibold text-gray-900 mb-1"><i class="fas fa-coins mr-1.5 text-brand-600"></i>价格与费用</h4>
+          ${fieldRow('月租', h.rent ? fmt(h.rent) + ' 元/月' : null, { anchor: 'hd-rent', bold: true })}
+          ${fieldRow('押金 / 付款方式', h.deposit, { anchor: 'hd-deposit' })}
+          ${fieldRow('物业费', h.propertyFee != null ? fmt(h.propertyFee) + ' 元/月' + (h.propertyBear ? '（' + h.propertyBear + '）' : '') : null, { anchor: 'hd-property' })}
+          ${fieldRow('网费', h.netFee != null ? fmt(h.netFee) + ' 元/月' : null)}
+          ${fieldRow('中介费', h.agencyFee != null ? (h.agencyFee ? fmt(h.agencyFee) + ' 元（一次性）' : '无（房东直租）') : null)}
+          <div class="mt-2 bg-brand-50/60 border border-brand-100 rounded-xl px-3 py-2.5 text-[12px]">
+            <div class="flex justify-between"><span class="text-gray-500">月度总成本</span><b class="text-brand-700">${mc.unknown.length ? '≈' : ''}${fmt(mc.sum)} 元/月</b></div>
+            <div class="flex justify-between mt-1"><span class="text-gray-500">入住一次性支出</span><span class="text-gray-700">押金 ${fmt(oc.deposit)} 元${oc.agency != null ? ' + 中介费 ' + fmt(oc.agency) + ' 元' : ''}</span></div>
+            ${mc.unknown.length ? `<div class="text-[10px] text-amber-600 mt-1.5"><i class="fas fa-circle-exclamation mr-1"></i>${mc.unknown.join('、')}待确认，实际成本可能更高</div>` : ''}
+          </div>
+        </section>
+
+        <!-- 居住 -->
+        <section>
+          <h4 class="text-[12px] font-semibold text-gray-900 mb-1"><i class="fas fa-bed mr-1.5 text-brand-600"></i>居住条件</h4>
+          ${fieldRow('户型', h.layout)}
+          ${fieldRow('面积', h.area != null ? h.area + ' ㎡' : null)}
+          ${fieldRow('楼层', h.floor)}
+          ${fieldRow('朝向', h.orientation)}
+          ${fieldRow('独立卫浴', h.bathroom === true ? '有' : h.bathroom === false ? '无' : null)}
+          ${fieldRow('采光', h.lighting)}
+          ${fieldRow('家具家电', h.furniture)}
+        </section>
+
+        <!-- 位置 -->
+        <section>
+          <h4 class="text-[12px] font-semibold text-gray-900 mb-1"><i class="fas fa-location-dot mr-1.5 text-brand-600"></i>位置与通勤</h4>
+          ${fieldRow('区域', h.region)}
+          ${fieldRow('通勤', h.commuteMin ? h.commuteMode + ' ' + h.commuteMin + ' 分钟' : null)}
+          ${fieldRow('最近地铁', h.metro)}
+        </section>
+
+        <!-- 约束 -->
+        <section>
+          <h4 class="text-[12px] font-semibold text-gray-900 mb-1"><i class="fas fa-list-check mr-1.5 text-brand-600"></i>关键约束</h4>
+          ${fieldRow('宠物', h.pet, { anchor: 'hd-pet' })}
+          ${fieldRow('合租', h.shared ? '合租' : '整租')}
+          ${fieldRow('可入住时间', h.available, { anchor: 'hd-available' })}
+          ${fieldRow('入住人数', h.maxPeople ? '限 ' + h.maxPeople + ' 人' : null)}
+        </section>
+
+        <!-- 待核实项 -->
+        <section>
+          <h4 class="text-[12px] font-semibold text-gray-900 mb-2"><i class="fas fa-circle-question mr-1.5 text-amber-500"></i>待核实项（${h.verify.length}）</h4>
+          ${h.verify.length ? h.verify.map(v => `<div class="flex items-start gap-2 text-[12px] text-gray-600 py-1"><i class="fas fa-circle-dot text-amber-400 text-[8px] mt-1.5"></i>${esc(v)}</div>`).join('') : '<div class="text-[12px] text-gray-300">暂无</div>'}
+        </section>
+
+        <!-- 待确认问题 -->
+        <section>
+          <h4 class="text-[12px] font-semibold text-gray-900 mb-2"><i class="fas fa-clipboard-question mr-1.5 text-brand-600"></i>看房 / 联系房东要问的问题（${h.todos.length}）</h4>
+          ${h.todos.map((t, i) => `<label class="flex items-start gap-2 text-[12px] text-gray-600 py-1 cursor-pointer"><input type="checkbox" class="mt-1 w-3.5 h-3.5 rounded border-gray-300 text-brand-500"> ${esc(t)}</label>`).join('') || '<div class="text-[12px] text-gray-300">暂无</div>'}
+          <div class="flex gap-2 mt-2">
+            <input id="newTodo" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-[12px] outline-none focus:border-gray-300 focus:bg-white" placeholder="补充一个待确认问题…">
+            <button onclick="addTodo()" class="text-xs bg-gray-900 text-white rounded-xl px-3">添加</button>
+          </div>
+        </section>
+
+        <!-- 备注与看房记录 -->
+        <section>
+          <h4 class="text-[12px] font-semibold text-gray-900 mb-2"><i class="fas fa-note-sticky mr-1.5 text-brand-600"></i>我的备注</h4>
+          <textarea id="houseNotes" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-[12px] outline-none focus:border-gray-300 focus:bg-white custom-scrollbar" placeholder="记录看房感受、房东承诺…">${esc(h.notes)}</textarea>
+          <div class="flex justify-end mt-1.5"><button onclick="saveNotes()" class="text-[11px] text-brand-600 hover:text-brand-700 font-medium">保存备注</button></div>
+          <h4 class="text-[12px] font-semibold text-gray-900 mt-4 mb-2"><i class="fas fa-shoe-prints mr-1.5 text-brand-600"></i>看房记录（${h.visits.length}）</h4>
+          ${h.visits.map(v => `<div class="text-[12px] text-gray-600 bg-gray-50 rounded-xl px-3 py-2 mb-1.5"><span class="text-gray-400 mr-2">${esc(v.time)}</span>${esc(v.text)}</div>`).join('') || '<div class="text-[12px] text-gray-300 mb-1.5">还没有看房记录</div>'}
+          <div class="flex gap-2 mt-1">
+            <input id="newVisit" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-[12px] outline-none focus:border-gray-300 focus:bg-white" placeholder="如：9/10 晚看房，南向采光确认，有异味…">
+            <button onclick="addVisit()" class="text-xs bg-gray-900 text-white rounded-xl px-3">记录</button>
+          </div>
+        </section>
+
+        <!-- 关联合同 -->
+        <section>
+          <h4 class="text-[12px] font-semibold text-gray-900 mb-2"><i class="fas fa-file-contract mr-1.5 text-brand-600"></i>关联合同</h4>
+          ${boundContract ? `
+            <div class="border border-gray-200 rounded-2xl p-3.5 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-red-50 text-red-500 border border-red-100 flex items-center justify-center shrink-0"><i class="fas fa-file-pdf"></i></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-[12px] font-medium text-gray-900 truncate">${esc(boundContract.name)}</div>
+                <div class="text-[10px] text-gray-400">${boundContract.no} · 已绑定 ${h.no}</div>
+              </div>
+              <button onclick="showVerificationCard('${h.id}')" class="text-xs text-brand-600 hover:bg-brand-50 rounded-lg px-2.5 py-1.5">查看核验</button>
+            </div>` : `
+            <div class="text-[12px] text-gray-400 bg-gray-50 rounded-xl px-3 py-2.5">尚未绑定合同。绑定后可将房源承诺与合同条款逐项核验。</div>`}
+        </section>
+
+        <!-- 操作 -->
+        <section class="flex flex-wrap gap-2 pb-4">
+          ${ctx.houseId !== h.id ? `<button onclick="setTargetHouse('${h.id}')" class="flex-1 min-w-[120px] bg-gray-900 hover:bg-gray-700 text-white rounded-xl py-2.5 text-xs font-medium transition-colors"><i class="fas fa-crosshairs mr-1"></i>设为目标房源</button>` : `<div class="flex-1 min-w-[120px] text-center text-xs text-brand-600 bg-brand-50 border border-brand-100 rounded-xl py-2.5 font-medium"><i class="fas fa-check mr-1"></i>当前目标房源</div>`}
+          <button onclick="bindContractEntry('${h.id}')" class="flex-1 min-w-[120px] bg-white border border-gray-200 hover:border-brand-300 text-gray-700 rounded-xl py-2.5 text-xs font-medium transition-colors"><i class="fas fa-file-contract mr-1"></i>${h.contractId ? '查看合同核验' : '绑定合同'}</button>
+          ${h.status === 'active' ? `<button onclick="dropHouse('${h.id}')" class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 rounded-xl py-2.5 px-3.5 text-xs transition-colors">标记放弃</button>` : `<button onclick="restoreHouse('${h.id}')" class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 rounded-xl py-2.5 px-3.5 text-xs transition-colors">恢复候选</button>`}
+        </section>
+      </div>`;
+    }
+    function saveNotes() {
+      if (!isLiveHouse(drawerHouseId)) { toast('历史演示数据仅供查看'); return; }
+      const h = getHouse(drawerHouseId);
+      if (!h) return;
+      h.notes = document.getElementById('houseNotes').value.trim();
+      toast('备注已保存');
+    }
+    function addVisit() {
+      if (!isLiveHouse(drawerHouseId)) { toast('历史演示数据仅供查看'); return; }
+      const h = getHouse(drawerHouseId);
+      const v = document.getElementById('newVisit').value.trim();
+      if (!v) return;
+      h.visits.push({ time: new Date().toISOString().slice(5, 10).replace('-', '/'), text: v });
+      renderHouseDrawer();
+      toast('已添加看房记录');
+    }
+    function addTodo() {
+      if (!isLiveHouse(drawerHouseId)) { toast('历史演示数据仅供查看'); return; }
+      const h = getHouse(drawerHouseId);
+      const v = document.getElementById('newTodo').value.trim();
+      if (!v) return;
+      h.todos.push(v);
+      renderHouseDrawer();
+      toast('已添加待确认问题');
+    }
+    function dropHouse(id) {
+      if (!isLiveHouse(id)) { toast('历史演示数据仅供查看，请先导入到本次工作台'); return; }
+      const h = getHouse(id);
+      const reason = prompt('标记放弃：可以简单记录原因（如“超预算”“通勤太长”）', h.dropReason || '');
+      if (reason === null) return;
+      h.status = 'dropped';
+      h.dropReason = reason.trim();
+      if (ctx.houseId === id) { ctx.houseId = null; ctx.contractId = null; renderCtxChips(); }
+      renderNavCounts();
+      if (currentView === 'houses') renderHouses();
+      closeHouseDrawer();
+      toast('已标记放弃，不再参与比较');
+    }
+    function restoreHouse(id) {
+      if (!isLiveHouse(id)) { toast('历史演示数据仅供查看，请先导入到本次工作台'); return; }
+      const h = getHouse(id);
+      h.status = 'active';
+      renderNavCounts();
+      if (currentView === 'houses') renderHouses();
+      renderHouseDrawer();
+      toast('已恢复为候选房源');
+    }
+
+    // ==================== 目标房源 / 上下文 ====================
+    function setTargetHouse(id, silent) {
+      if (!isLiveHouse(id)) { toast('历史演示数据仅供查看，请先导入到本次工作台'); return; }
+      const h = getHouse(id);
+      if (!h) return;
+      const doSet = () => {
+        cancelActiveTask(); // 切换房源时取消旧任务
+        ctx.houseId = id;
+        ctx.contractId = h.contractId || null;
+        renderCtxChips();
+        renderNavCounts();
+        if (currentView === 'houses') renderHouses();
+        if (drawerHouseId) renderHouseDrawer();
+        if (!silent) toast(`当前房源已切换为「${h.name}」，后续回答将围绕这套房`);
+      };
+      if (ctx.houseId && ctx.houseId !== id) {
+        const old = getHouse(ctx.houseId);
+        askConfirm('切换当前房源', `当前正在围绕「${old ? old.name : ''}」对话，确定切换为「${h.name}」吗？切换后回答不再引用原房源。`, doSet, '切换');
+      } else doSet();
+    }
+    function removeCtx(kind) {
+      if (kind === 'house') { ctx.houseId = null; ctx.contractId = null; toast('已移除当前房源上下文，后续回答不再引用该房源'); }
+      if (kind === 'contract') { ctx.contractId = null; toast('已移除合同上下文，后续回答不再声称“根据你的合同”'); }
+      renderCtxChips();
+      renderNavCounts();
+    }
+    function renderCtxChips() {
+      const box = document.getElementById('contextChips');
+      if (!box) return;
+      const h = ctx.houseId ? getHouse(ctx.houseId) : null;
+      const c = ctx.contractId ? getContract(ctx.contractId) : null;
+      const chips = [];
+      if (h) chips.push(`
+        <span class="inline-flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full pl-2.5 pr-1.5 py-1">
+          <i class="fas fa-building text-[10px]"></i><span class="max-w-[160px] truncate">${h.no} ${esc(h.name)}</span>
+          <span class="text-emerald-400">· 当前房源</span>
+          <button onclick="removeCtx('house')" title="移除上下文" class="w-4 h-4 rounded-full hover:bg-emerald-100 text-emerald-400 flex items-center justify-center"><i class="fas fa-xmark text-[9px]"></i></button>
+        </span>`);
+      if (c) chips.push(`
+        <span class="inline-flex items-center gap-1.5 text-[11px] text-red-600 bg-red-50 border border-red-100 rounded-full pl-2.5 pr-1.5 py-1">
+          <i class="fas fa-file-pdf text-[10px]"></i><span class="max-w-[160px] truncate">${c.no} ${esc(c.name)}</span>
+          <span class="text-red-300">· 当前合同</span>
+          <button onclick="removeCtx('contract')" title="移除上下文" class="w-4 h-4 rounded-full hover:bg-red-100 text-red-400 flex items-center justify-center"><i class="fas fa-xmark text-[9px]"></i></button>
+        </span>`);
+      box.innerHTML = chips.join('');
+      box.classList.toggle('hidden', !chips.length);
+    }
+
+    // ==================== 偏好设置 ====================
+    function openPrefs() {
+      document.getElementById('pf-budget').value = prefs.budget ?? '';
+      document.getElementById('pf-commute').value = prefs.commute ?? '';
+      document.getElementById('pf-bathroom').checked = !!prefs.needBathroom;
+      document.getElementById('pf-shared').checked = !!prefs.allowShared;
+      document.querySelectorAll('#softTags .soft-tag').forEach(b => b.classList.toggle('on', !!prefs.soft[b.dataset.soft]));
+      document.getElementById('prefsError').classList.add('hidden');
+      document.getElementById('prefsModal').classList.remove('hidden');
+    }
+    function closePrefs() { document.getElementById('prefsModal').classList.add('hidden'); }
+    function toggleSoft(key) {
+      prefs.soft[key] = !prefs.soft[key];
+      document.querySelector(`#softTags .soft-tag[data-soft="${key}"]`).classList.toggle('on', prefs.soft[key]);
+    }
+    function savePrefs() {
+      const b = document.getElementById('pf-budget').value.trim();
+      const c = document.getElementById('pf-commute').value.trim();
+      const err = document.getElementById('prefsError');
+      if (b && (!/^\d+$/.test(b) || +b <= 0)) { err.innerText = '预算需为正整数（元），例如 6000'; err.classList.remove('hidden'); return; }
+      if (c && (!/^\d+$/.test(c) || +c <= 0 || +c > 300)) { err.innerText = '通勤上限需为 1—300 的整数（分钟）'; err.classList.remove('hidden'); return; }
+      prefs.budget = b ? +b : null;
+      prefs.commute = c ? +c : null;
+      prefs.needBathroom = document.getElementById('pf-bathroom').checked;
+      prefs.allowShared = document.getElementById('pf-shared').checked;
+      closePrefs();
+      toast('偏好已保存');
+      recommendFlow(null, true);
+    }
+    function startRecommend() {
+      const n = comparableHouses().length;
+      const pending = activeHouses().length - n;
+      if (n < 3) { toast(`当前仅有 ${n} 套关键字段完整可比较${pending ? `，另有 ${pending} 套待完善` : ''}，至少需要 3 套完整候选`); openImport('batch'); return; }
+      if (n > 10) { toast(`当前 ${n} 套关键字段完整候选超出比较上限（10 套），请先移除部分房源`); switchView('houses'); return; }
+      openPrefs();
+    }
+
+    // ==================== 推荐引擎 ====================
+    function hardCheck(h) {
+      const v = [];
+      if (h.rent == null) {
+        v.push('月租缺失（关键硬约束无法验证，不可直接推荐）');
+      } else if (prefs.budget != null && h.rent > prefs.budget) {
+        v.push(`月租 ${fmt(h.rent)} 超出预算 ${fmt(prefs.budget)}`);
+      }
+      if (h.commuteMin == null) {
+        v.push('通勤时间缺失（关键硬约束无法验证，不可直接推荐）');
+      } else if (prefs.commute != null && h.commuteMin > prefs.commute) {
+        v.push(`通勤 ${h.commuteMin} 分钟超出上限 ${prefs.commute} 分钟`);
+      }
+      if (prefs.needBathroom && h.bathroom !== true) {
+        v.push(h.bathroom === false ? '无独立卫浴（硬约束不满足）' : '独立卫浴情况待确认（硬约束无法验证）');
+      }
+      return v;
+    }
+    function softScore(h) {
+      const hits = [], miss = [];
+      const s = prefs.soft;
+      if (s.south) (h.orientation || '').includes('南') ? hits.push('南向') : miss.push('非南向');
+      if (s.light) (h.lighting || '').includes('好') ? hits.push('采光好') : miss.push('采光未确认');
+      if (s.highFloor) {
+        const fl = parseInt(h.floor, 10);
+        (fl >= 6 ? hits.push('中高楼层') : miss.push('楼层偏低'));
+      }
+      if (s.bigArea) ((h.area || 0) >= 50 ? hits.push('面积 ' + h.area + '㎡') : miss.push('面积不大'));
+      if (s.flexPay) ((h.deposit || '').includes('付一') ? hits.push('付款灵活') : miss.push('付款压力大'));
+      return { hits, miss, score: hits.length };
+    }
+    function recommendFlow(text, fromPrefs) {
+      const n = comparableHouses().length;
+      const pending = activeHouses().length - n;
+      if (n < 3) { toast(`当前仅有 ${n} 套关键字段完整可比较${pending ? `，另有 ${pending} 套待完善` : ''}，至少需要 3 套完整候选`); openImport('batch'); return; }
+      if (n > 10) { toast(`当前 ${n} 套关键字段完整候选超出比较上限（10 套），请先移除部分房源`); switchView('houses'); return; }
+      // 从自然语言更新偏好
+      if (text) {
+        const bMatch = text.match(/预算[^\d]{0,8}(\d{3,6})/) || text.match(/(\d{3,6})\s*(?:元)?\s*(?:以内|以下)/);
+        if (bMatch) prefs.budget = parseInt(bMatch[1], 10);
+        const cMatch = text.match(/通勤[^\d]{0,8}(\d{1,3})\s*分钟?/) || text.match(/(\d{1,3})\s*分钟(?:以内|以下)?/);
+        if (cMatch) prefs.commute = parseInt(cMatch[1], 10);
+        if (/独立卫浴|独卫/.test(text)) prefs.needBathroom = true;
+        if (/允许合租|接受合租|可以合租/.test(text)) prefs.allowShared = true;
+      }
+      lastFlow = skip => recommendFlow(null, true); lastPrompt = '';
+      beginChat('房源推荐');
+      ensureConv('候选房源推荐', 'fa-building');
+      if (!started) { started = true; showThread(''); }
+      if (text && !fromPrefs) addUser(textBubble(text));
+      else addUser(`<div class="text-[13px] text-gray-700 bg-gray-100 rounded-2xl rounded-tr-md px-4 py-2.5"><i class="fas fa-filter mr-1.5 text-gray-400"></i>按当前偏好重新推荐：预算 ≤ ${prefs.budget ? fmt(prefs.budget) : '不限'} · 通勤 ≤ ${prefs.commute ? prefs.commute + ' 分钟' : '不限'} · ${prefs.needBathroom ? '必须独立卫浴' : '不限独卫'} · ${prefs.allowShared ? '接受合租' : '不接受合租'}</div>`);
+      const taskConvId = activeId;
+      const sharedExcluded = comparableHouses().filter(h => h.shared && !prefs.allowShared).length;
+      runSteps([
+        `核对硬约束（预算 / 通勤 / 独卫${prefs.allowShared ? '' : ' / 合租'}）· ${n} 套候选`,
+        '计算每套真实成本与信息完整度',
+        '按软偏好排序并生成取舍说明'
+      ], () => {
+        if (activeId !== taskConvId) return;
+        addAI(recCardHTML(sharedExcluded), true);
+      });
+    }
+
+    const REC_STATUS = {
+      top: ['优先考虑', 'bg-green-50 text-green-600 border-green-100'],
+      alt: ['可作为备选', 'bg-sky-50 text-brand-600 border-brand-100'],
+      no: ['不建议', 'bg-red-50 text-red-500 border-red-100']
+    };
+    function recCardHTML(sharedExcluded) {
+      return `
+        <div class="text-[14px] text-gray-800 mb-2.5 leading-relaxed">基于你的硬约束与软偏好，对 <b>${comparableHouses().length} 套关键字段完整候选</b>的推荐如下。每套都给出理由、取舍、真实成本和待确认项，不输出唯一排名：</div>
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-4 py-3 flex items-center justify-between bg-gray-50/80 border-b border-gray-100 flex-wrap gap-2">
+            <div class="flex items-center gap-2 text-[13px] font-semibold text-gray-900"><i class="fas fa-table-list text-brand-600"></i> 推荐结果
+              <span class="text-[10px] font-normal text-gray-400">预算 ≤ ${prefs.budget ? fmt(prefs.budget) : '不限'} · 通勤 ≤ ${prefs.commute ? prefs.commute + '分钟' : '不限'} · ${prefs.needBathroom ? '须独卫' : '不限独卫'}</span>
+            </div>
+            <div class="flex gap-1 bg-gray-100 rounded-full p-0.5">
+              ${[['mix', '综合匹配'], ['budget', '按预算'], ['commute', '按通勤']].map(([v, l]) =>
+                `<button onclick="setRecView('${v}')" class="text-[11px] rounded-full px-3 py-1 transition-colors ${recView === v ? 'bg-white shadow-sm text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-700'}">${l}</button>`).join('')}
+            </div>
+          </div>
+          <div id="recBody">${recBodyHTML(recView, sharedExcluded)}</div>
+          <div class="px-4 py-3 border-t border-gray-100 flex flex-wrap gap-2">
+            <button onclick="openPrefs()" class="text-xs bg-white border border-gray-200 hover:border-brand-300 hover:text-brand-600 text-gray-600 rounded-full px-3 py-1.5 transition-colors"><i class="fas fa-sliders mr-1"></i>修改偏好重新推荐</button>
+            <button onclick="send('预算 ${prefs.budget === 6000 ? 5000 : 6000} 通勤 ${prefs.commute === 45 ? 30 : 45} 分钟 重新推荐')" class="text-xs bg-white border border-gray-200 hover:border-brand-300 hover:text-brand-600 text-gray-600 rounded-full px-3 py-1.5 transition-colors">试试${prefs.budget === 6000 ? '预算 5,000' : '预算 6,000'} / 通勤 ${prefs.commute === 45 ? '30' : '45'} 分钟</button>
+          </div>
+        </div>`;
+    }
+    function setRecView(v) {
+      recView = v;
+      const card = document.getElementById('recBody');
+      if (card) {
+        card.innerHTML = recBodyHTML(v, activeHouses().filter(h => h.shared && !prefs.allowShared).length);
+        card.closest('.bg-white').querySelectorAll('.bg-gray-100 button').forEach(b => {
+          const on = b.textContent === { mix: '综合匹配', budget: '按预算', commute: '按通勤' }[v];
+          b.className = `text-[11px] rounded-full px-3 py-1 transition-colors ${on ? 'bg-white shadow-sm text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-700'}`;
+        });
+      }
+    }
+    function recBodyHTML(view, sharedExcluded) {
+      const all = activeHouses();
+      const candidates = comparableHouses();
+      const pending = all.filter(h => comparisonMissingFields(h).length > 0);
+      const sharedOut = candidates.filter(h => h.shared && !prefs.allowShared);
+      const pool = candidates.filter(h => !(h.shared && !prefs.allowShared));
+      const rows = pool.map(h => ({ h, violations: hardCheck(h) }));
+      let pass = rows.filter(r => !r.violations.length);
+      const fail = rows.filter(r => r.violations.length);
+      const sorters = {
+        budget: (a, b) => {
+          if (a.h.rent == null && b.h.rent == null) return 0;
+          if (a.h.rent == null) return 1;
+          if (b.h.rent == null) return -1;
+          return monthlyCost(a.h).sum - monthlyCost(b.h).sum;
+        },
+        commute: (a, b) => (a.h.commuteMin || 999) - (b.h.commuteMin || 999),
+        mix: (a, b) => softScore(b.h).score - softScore(a.h).score || monthlyCost(a.h).sum - monthlyCost(b.h).sum
+      };
+      pass.sort(sorters[view]);
+      const viewLabel = { mix: '综合匹配（软偏好 + 成本）', budget: '按月度总成本从低到高', commute: '按通勤从短到长' }[view];
+
+      let html = `<div class="px-4 pt-3 text-[11px] text-gray-400">当前视角：${viewLabel}</div>`;
+      if (!pass.length) {
+        html += `<div class="px-6 py-10 text-center">
+          <i class="fas fa-filter-circle-xmark text-3xl text-gray-200 mb-3"></i>
+          <div class="text-[13px] font-medium text-gray-700">当前硬约束下没有可推荐的房源</div>
+          <div class="text-[12px] text-gray-400 mt-1.5">可以放宽预算 / 通勤上限，或允许合租后重新推荐</div>
+          <button onclick="openPrefs()" class="mt-4 text-xs bg-gray-900 text-white rounded-xl px-4 py-2.5">调整偏好</button>
+        </div>`;
+      } else {
+        html += pass.map((r, i) => recHouseCard(r.h, i === 0 ? 'top' : 'alt', view)).join('');
+      }
+      if (fail.length) {
+        html += `<div class="border-t border-gray-100">
+          <div class="px-4 py-2.5 text-[11px] font-semibold text-red-400 bg-red-50/50"><i class="fas fa-ban mr-1"></i>硬约束不满足（${fail.length} 套）</div>
+          ${fail.map(r => `<div class="px-4 py-2.5 border-t border-gray-50 flex items-start gap-3 opacity-80">
+            <span class="text-[10px] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 mt-0.5 shrink-0">${r.h.no}</span>
+            <div class="flex-1 min-w-0">
+              <span class="text-[12px] font-medium text-gray-700">${esc(r.h.name)}</span>
+              <div class="text-[11px] text-red-400 mt-0.5">${r.violations.map(esc).join('；')}</div>
+            </div>
+            <button onclick="openHouseDrawer('${r.h.id}')" class="text-[11px] text-gray-400 hover:text-gray-600 shrink-0">详情</button>
+          </div>`).join('')}
+        </div>`;
+      }
+      if (sharedOut.length) {
+        html += `<div class="px-4 py-2.5 border-t border-gray-100 bg-purple-50/40 text-[11px] text-purple-600 flex items-center justify-between">
+          <span><i class="fas fa-user-group mr-1"></i>${sharedOut.length} 套合租房源未纳入（当前偏好不接受合租）</span>
+          <button onclick="prefs.allowShared=true; recommendFlow(null, true)" class="font-semibold hover:underline">允许合租并重新推荐 →</button>
+        </div>`;
+      }
+      if (pending.length) {
+        html += `<div class="border-t border-gray-100">
+          <div class="px-4 py-2.5 text-[11px] font-semibold text-amber-600 bg-amber-50/60"><i class="fas fa-clipboard-question mr-1"></i>待完善候选（${pending.length} 套），未纳入本次推荐比较</div>
+          ${pending.map(h => `<div class="px-4 py-2.5 border-t border-gray-50 flex items-start gap-3">
+            <span class="text-[10px] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 mt-0.5 shrink-0">${h.no}</span>
+            <div class="flex-1 min-w-0"><span class="text-[12px] font-medium text-gray-700">${esc(h.name)}</span><div class="text-[11px] text-amber-600 mt-0.5">缺少：${comparisonMissingFields(h).map(esc).join('、')}</div></div>
+            <button onclick="openHouseDrawer('${h.id}')" class="text-[11px] text-gray-400 hover:text-gray-600 shrink-0">补充字段</button>
+          </div>`).join('')}
+        </div>`;
+      }
+      return html;
+    }
+    function recCardHTMLForDemo(demoList, sharedExcluded) {
+      const pool = demoList.filter(h => !(h.shared && !prefs.allowShared));
+      const rows = pool.map(h => ({ h, violations: hardCheck(h) }));
+      let pass = rows.filter(r => !r.violations.length);
+      const fail = rows.filter(r => r.violations.length);
+      pass.sort((a, b) => softScore(b.h).score - softScore(a.h).score || monthlyCost(a.h).sum - monthlyCost(b.h).sum);
+      let html = `<div class="text-[14px] text-gray-800 mb-2.5 leading-relaxed">基于你的硬约束与软偏好，对 <b>${demoList.length} 套候选</b>的推荐如下。每套都给出理由、取舍、真实成本和待确认项，不输出唯一排名：</div>
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-4 py-3 flex items-center justify-between bg-gray-50/80 border-b border-gray-100 flex-wrap gap-2">
+            <div class="flex items-center gap-2 text-[13px] font-semibold text-gray-900"><i class="fas fa-table-list text-brand-600"></i> 推荐结果 <span class="text-[10px] bg-amber-100 text-amber-700 border border-amber-200 rounded px-1.5 py-0.5 ml-1">历史示例快照</span></div>
+          </div>
+          <div>
+            <div class="px-4 pt-3 text-[11px] text-gray-400">当前视角：综合匹配（软偏好 + 成本）</div>
+            ${pass.map((r, i) => recHouseCard(r.h, i === 0 ? 'top' : 'alt', 'mix', { readOnly: true })).join('')}
+            ${fail.length ? `<div class="border-t border-gray-100"><div class="px-4 py-2.5 text-[11px] font-semibold text-red-400 bg-red-50/50"><i class="fas fa-ban mr-1"></i>硬约束不满足（${fail.length} 套）</div>${fail.map(r => `<div class="px-4 py-2.5 border-t border-gray-50 flex items-start gap-3 opacity-80"><span class="text-[10px] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 mt-0.5 shrink-0">${r.h.no}</span><div class="flex-1 min-w-0"><span class="text-[12px] font-medium text-gray-700">${esc(r.h.name)}</span><div class="text-[11px] text-red-400 mt-0.5">${r.violations.map(esc).join('；')}</div></div><button onclick="openHouseDrawer('${r.h.id}')" class="text-[11px] text-gray-400 hover:text-gray-600 shrink-0">详情</button></div>`).join('')}</div>` : ''}
+          </div>
+        </div>`;
+      return html;
+    }
+    function recHouseCard(h, status, view, options = {}) {
+      const readOnly = options.readOnly === true;
+      const [stLabel, stCls] = REC_STATUS[status];
+      const comp = completeness(h);
+      const miss = missingFields(h);
+      const mc = monthlyCost(h);
+      const oc = oneTimeCost(h);
+      const soft = softScore(h);
+      const reasons = [];
+      if (prefs.budget != null && h.rent != null && h.rent <= prefs.budget) reasons.push(`月租 ${fmt(h.rent)} 在预算内`);
+      if (prefs.commute != null && h.commuteMin != null && h.commuteMin <= prefs.commute) reasons.push(`通勤 ${h.commuteMin} 分钟达标`);
+      if (prefs.needBathroom && h.bathroom === true) reasons.push('有独立卫浴');
+      soft.hits.forEach(x => reasons.push('符合软偏好：' + x));
+      if (!reasons.length) reasons.push('满足全部硬约束');
+      const tradeoffs = [];
+      if (prefs.budget != null && h.rent != null && h.rent > prefs.budget * 0.9) tradeoffs.push('租金接近预算上限，议价空间小');
+      if (prefs.commute != null && h.commuteMin != null && h.commuteMin > prefs.commute * 0.85) tradeoffs.push('通勤接近上限');
+      soft.miss.forEach(x => tradeoffs.push('未满足软偏好：' + x));
+      if (h.shared) tradeoffs.push('合租隐私与公区规则需确认');
+      const risks = [];
+      miss.forEach(m => risks.push(m + ' 缺失'));
+      h.verify.slice(0, 2).forEach(v => risks.push(v));
+      const todosQ = h.todos.length ? h.todos : ['确认费用明细与承担方', '确认可入住时间'];
+      return `<div class="border-t border-gray-100 px-4 py-4">
+        <div class="flex items-center gap-2 flex-wrap mb-2.5">
+          <span class="text-[10px] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5">${h.no}</span>
+          <span class="text-[13px] font-semibold text-gray-900">${esc(h.name)}</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded border ${stCls}">${stLabel}</span>
+          <span class="text-[10px] text-gray-400">${SOURCE_LABEL[h.source] || h.source} · 完整度 ${comp}%${comp < 70 ? ' · 部分信息缺失' : ''}</span>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-x-5 gap-y-2.5 text-[12px]">
+          <div><div class="text-[11px] font-semibold text-green-600 mb-1"><i class="fas fa-thumbs-up mr-1"></i>推荐理由</div>${reasons.map(r => `<div class="text-gray-600 py-0.5">· ${esc(r)}</div>`).join('')}</div>
+          <div><div class="text-[11px] font-semibold text-amber-600 mb-1"><i class="fas fa-scale-unbalanced mr-1"></i>不足与取舍</div>${tradeoffs.length ? tradeoffs.map(r => `<div class="text-gray-600 py-0.5">· ${esc(r)}</div>`).join('') : '<div class="text-gray-400 py-0.5">· 暂无明显短板</div>'}</div>
+          <div><div class="text-[11px] font-semibold text-brand-600 mb-1"><i class="fas fa-coins mr-1"></i>真实成本</div>
+            <div class="text-gray-600 py-0.5">· 月度总成本 ${mc.unknown.length ? '≈' : ''}<b>${fmt(mc.sum)}</b> 元（月租 ${h.rent ? fmt(h.rent) : '待定'}${h.propertyFee != null ? ' + 物业 ' + fmt(h.propertyFee) : ''}${h.netFee != null && h.netFee ? ' + 网费 ' + fmt(h.netFee) : ''}）</div>
+            <div class="text-gray-600 py-0.5">· 一次性支出：押金 ${fmt(oc.deposit)} 元（${esc(oc.label)}）${oc.agency != null ? '，中介费 ' + (oc.agency ? fmt(oc.agency) + ' 元' : '0') : ''}</div>
+            ${mc.unknown.length ? `<div class="text-amber-500 py-0.5">· ${mc.unknown.join('、')}待确认，成本可能上浮</div>` : ''}
+          </div>
+          <div><div class="text-[11px] font-semibold text-red-400 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>信息风险</div>${risks.length ? risks.map(r => `<div class="text-gray-600 py-0.5">· ${esc(r)}</div>`).join('') : '<div class="text-gray-400 py-0.5">· 关键信息完整</div>'}</div>
+        </div>
+        <div class="mt-2.5 bg-amber-50/50 border border-amber-100 rounded-xl px-3 py-2">
+          <span class="text-[11px] font-semibold text-amber-600 mr-1.5"><i class="fas fa-clipboard-question mr-1"></i>待确认</span>
+          <span class="text-[11px] text-amber-700">${todosQ.map(esc).join('；')}</span>
+        </div>
+        ${readOnly ? '<div class="mt-2.5 text-[11px] text-amber-600 bg-amber-50/60 border border-amber-100 rounded-xl px-3 py-2"><i class="fas fa-flask mr-1"></i>历史示例快照，仅供查看</div>' : `<div class="mt-2.5 flex flex-wrap gap-2">
+          <button onclick="openHouseDrawer('${h.id}')" class="text-[11px] bg-white border border-gray-200 hover:border-brand-300 hover:text-brand-600 text-gray-600 rounded-full px-3 py-1.5 transition-colors">查看详情</button>
+          <button onclick="setTargetHouse('${h.id}')" class="text-[11px] bg-white border border-gray-200 hover:border-brand-300 hover:text-brand-600 text-gray-600 rounded-full px-3 py-1.5 transition-colors">设为目标房源</button>
+          <button onclick="bindContractEntry('${h.id}')" class="text-[11px] bg-white border border-gray-200 hover:border-brand-300 hover:text-brand-600 text-gray-600 rounded-full px-3 py-1.5 transition-colors">${h.contractId ? '查看合同核验' : '绑定合同'}</button>
+          <button onclick="dropHouse('${h.id}')" class="text-[11px] bg-white border border-gray-200 hover:bg-gray-50 text-gray-400 rounded-full px-3 py-1.5 transition-colors">标记放弃</button>
+        </div>`}
+      </div>`;
+    }
+
+    // ==================== 合同数据与核验 ====================
+    function mkContract(d) {
+      return Object.assign({
+        id: nid(), no: 'C' + (++contractSeq), name: '', source: '上传', time: new Date().toISOString().slice(0, 10),
+        status: 'done', reason: '', size: '', boundHouseId: null, clausesList: [], riskClauses: new Set(), negotiation: ''
+      }, d);
+    }
+    const DEMO_CONTRACT_TEXT = `北京市房屋租赁合同\n出租方（甲方）：王某  承租方（乙方）：张三\n第二条 租赁房屋：甲方将位于北京市朝阳区望京南湖东园一区 3 号楼 1202 室出租给乙方，建筑面积 68.5 平方米。\n第三条 租赁期限：共 12 个月，自 2026 年 9 月 15 日起至 2027 年 9 月 14 日止。\n第四条 租金：月租金为人民币 6,000 元。\n第五条 押金与支付：乙方按押二付一方式支付，签约当日支付押金 12,000 元。\n第八条 违约责任：任何一方违约，应向守约方支付违约金，金额为月租金的三倍。\n第九条 物业费：租赁期内物业费由乙方承担。\n第十三条 其他约定：租赁期内乙方不得在房屋内饲养任何宠物。`;
+    const DEMO_CONTRACT_CLAUSES = [
+      [2, '第二条 租赁房屋', '甲方将位于北京市朝阳区望京南湖东园一区 3 号楼 1202 室出租给乙方居住使用，建筑面积 68.5 平方米。'],
+      [3, '第三条 租赁期限', '租赁期共 12 个月，自 2026 年 9 月 15 日起至 2027 年 9 月 14 日止。'],
+      [4, '第四条 租金', '月租金为人民币 6,000 元，乙方应于每期开始前 7 日支付。'],
+      [5, '第五条 押金与支付', '乙方按「押二付一」方式支付，签约当日支付押金人民币 12,000 元。'],
+      [8, '第八条 违约责任', '任何一方违约的，应向守约方支付违约金，违约金金额为月租金的三倍，并赔偿由此造成的全部损失。'],
+      [9, '第九条 物业费', '租赁期内，该房屋物业费由乙方承担，随租金一并缴纳。'],
+      [13, '第十三条 其他约定', '租赁期内，乙方不得在房屋内饲养任何宠物；违反的，甲方有权解除合同并没收押金。'],
+    ];
+    function buildBoundContract(name, source, size, houseId) {
+      return mkContract({
+        name: name.includes('演示解析') ? name : `${name}（演示解析）`,
+        source, size, boundHouseId: houseId,
+        isDemoParse: true,
+        clausesList: DEMO_CONTRACT_CLAUSES,
+        riskClauses: new Set([4, 5, 8, 9, 13]),
+        negotiation: `建议与房东确认并修改的条款（可发给房东）：\n1. 第 4 条：月租由 6,000 元改回沟通价 5,800 元；\n2. 第 5 条：支付方式由「押二付一」改为「押一付一」，减少资金占用 6,000 元；\n3. 第 9 条：物业费按口头约定由甲方承担，或从月租中扣除；\n4. 第 13 条：删除禁养条款，改为「乙方饲养一只已免疫宠物猫，退租时恢复原状」；\n5. 第 8 条：违约金由三个月租金改为一个月租金。`
+      });
+    }
+
+    function toggleVerifyRow(i, btn) {
+      const panel = document.getElementById('vr-' + i);
+      if (!panel) return;
+      const isHidden = panel.classList.toggle('hidden');
+      if (btn) btn.setAttribute('aria-expanded', String(!isHidden));
+    }
+
+    // 核验表：房源承诺 / 合同条款 / 结果 / 建议
+    const VR_STYLE = {
+      '一致': 'bg-green-50 text-green-600 border-green-100',
+      '冲突': 'bg-red-50 text-red-500 border-red-100',
+      '未约定': 'bg-amber-50 text-amber-600 border-amber-100',
+      '无法判断': 'bg-gray-100 text-gray-500 border-gray-200'
+    };
+    function buildVerification(h) {
+      const rows = [];
+      // 月租
+      if (h.rent != null) rows.push({
+        claim: `月租 ${fmt(h.rent)} 元`, field: '租金', anchor: 'hd-rent',
+        clauseId: 4, clause: '第 4 条：月租 6,000 元',
+        result: h.rent === 6000 ? '一致' : '冲突',
+        advice: h.rent === 6000 ? '金额一致，按约履行即可' : `与房东确认沟通价 ${fmt(h.rent)} 元，要求修改第 4 条后再签字`
+      });
+      // 押金方式
+      if (h.deposit) rows.push({
+        claim: h.deposit, field: '押金/付款方式', anchor: 'hd-deposit',
+        clauseId: 5, clause: '第 5 条：押二付一',
+        result: h.deposit === '押二付一' ? '一致' : '冲突',
+        advice: h.deposit === '押二付一' ? '与约定一致' : `按「${h.deposit}」修改支付方式，测算新增资金占用（押金多付一个月租金）`
+      });
+      // 物业费
+      if (h.propertyBear || h.propertyFee != null) rows.push({
+        claim: `物业费${h.propertyBear ? '由' + h.propertyBear : ' ' + fmt(h.propertyFee) + ' 元/月'}`, field: '物业费', anchor: 'hd-property',
+        clauseId: 9, clause: '第 9 条：物业费由乙方承担',
+        result: h.propertyBear === '租客承担' ? '一致' : '冲突',
+        advice: h.propertyBear === '租客承担' ? '与约定一致' : '口头承诺与合同冲突，标记为高优先级确认项，签约前必须修改'
+      });
+      // 宠物
+      if (h.pet) rows.push({
+        claim: h.pet, field: '宠物', anchor: 'hd-pet',
+        clauseId: 13, clause: '第 13 条：禁止饲养任何宠物',
+        result: h.pet.includes('禁止') ? '一致' : '冲突',
+        advice: h.pet.includes('禁止') ? '与约定一致' : '将宠物约定写入补充协议，注明数量、品种与退租恢复责任'
+      });
+      // 可入住时间
+      if (h.available) rows.push({
+        claim: h.available, field: '可入住时间', anchor: 'hd-available',
+        clauseId: 3, clause: '第 3 条：2026 年 9 月 15 日起租',
+        result: '冲突',
+        advice: '起租日晚于沟通入住时间会产生空置期租金，建议按实际入住日起租或减免空置期'
+      });
+      // 面积
+      if (h.area != null) rows.push({
+        claim: `建筑面积 ${h.area} ㎡`, field: '面积', anchor: null,
+        clauseId: 2, clause: '第 2 条：建筑面积 68.5 平方米',
+        result: h.area === 68.5 ? '一致' : '冲突',
+        advice: h.area === 68.5 ? '与合同一致' : '以产权证明为准核实面积差异'
+      });
+      // 合同未覆盖的房源信息
+      if (h.metro) rows.push({
+        claim: `近地铁（${h.metro}）`, field: '位置', anchor: null,
+        clauseId: null, clause: '未找到对应条款',
+        result: '未约定', advice: '位置信息属房源描述，无需写入合同；如有通勤补贴类承诺需补充约定'
+      });
+      rows.push({
+        claim: '家电维修 24 小时响应（口头承诺）', field: '维修', anchor: null,
+        clauseId: null, clause: '未找到对应条款',
+        result: '未约定', advice: '要求写入补充协议：非人为损坏由甲方负责维修并约定响应时限'
+      });
+      return rows;
+    }
+
+    function verifyCardHTML(h, c, options = {}) {
+      const readOnly = options.readOnly === true;
+      const rows = buildVerification(h);
+      const conflicts = rows.filter(r => r.result === '冲突').length;
+      const unbooked = rows.filter(r => r.result === '未约定').length;
+      return `
+        <div class="mb-2 text-[12px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-center gap-2">
+          <i class="fas fa-flask text-amber-600 shrink-0"></i>
+          <span><b>合同演示解析提示：</b>当前前端原型使用内置演示条款与金额进行核验演示，尚未对接后端真实合同解析服务。</span>
+        </div>
+        <div class="text-[14px] text-gray-800 mb-2.5 leading-relaxed">已将房源 <b>${h.no}</b> 与合同 <b>${c.no}</b> 逐项核验：<span class="text-red-600 font-medium">${conflicts} 项冲突</span>${unbooked ? `、<span class="text-amber-600 font-medium">${unbooked} 项未约定</span>` : ''}。点击每一项可同时查看房源字段来源与合同原文：</div>
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-4 py-3 flex items-center justify-between bg-gray-50/80 border-b border-gray-100 flex-wrap gap-1.5">
+            <div class="flex items-center gap-2 text-[13px] font-semibold text-gray-900"><i class="fas fa-code-compare text-brand-600"></i> 房源承诺 × 合同条款核验 <span class="text-[10px] bg-amber-100 text-amber-700 border border-amber-200 rounded px-1.5 py-0.5 ml-1">演示解析</span></div>
+            <div class="text-[10px] text-gray-400">${h.no} ${esc(h.name)} × ${c.no} ${esc(c.name)}</div>
+          </div>
+          <div class="grid grid-cols-[1fr_1fr_64px] gap-x-3 px-4 py-2 text-[10px] font-semibold text-gray-400 border-b border-gray-100">
+            <span>房源信息 / 承诺</span><span>合同对应条款</span><span>结果</span>
+          </div>
+          ${rows.map((r, i) => `
+          <div class="border-t border-gray-50">
+            <button type="button" class="w-full text-left verify-row p-0 transition-colors focus:outline-none focus:bg-gray-50" aria-expanded="false" aria-controls="vr-${i}" onclick="toggleVerifyRow(${i}, this)">
+              <div class="grid grid-cols-[1fr_1fr_64px] gap-x-3 px-4 py-2.5 text-[12px] items-start">
+                <span class="text-gray-800">${esc(r.claim)}</span>
+                <span class="${r.clauseId ? 'text-gray-500' : 'text-gray-300'}">${esc(r.clause)}</span>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded border text-center ${VR_STYLE[r.result]}">${r.result}</span>
+              </div>
+            </button>
+            <div id="vr-${i}" class="hidden px-4 pb-3">
+              <div class="bg-gray-50 rounded-xl px-3 py-2.5 space-y-1.5">
+                <div class="text-[11px] text-amber-700"><i class="fas fa-lightbulb mr-1"></i><b>建议：</b>${esc(r.advice)}</div>
+                <div class="flex gap-2 pt-1">
+                  ${readOnly ? '' : `<button onclick="event.stopPropagation(); closeContract(); openHouseDrawer('${h.id}'${r.anchor ? `, '${r.anchor}'` : ''})" class="text-[11px] bg-white border border-gray-200 hover:border-brand-300 hover:text-brand-600 text-gray-600 rounded-full px-3 py-1 transition-colors"><i class="fas fa-building mr-1"></i>定位房源字段</button>`}
+                  ${r.clauseId ? `<button onclick="event.stopPropagation(); openContract(${r.clauseId}, '${c.id}')" class="text-[11px] bg-white border border-gray-200 hover:border-brand-300 hover:text-brand-600 text-gray-600 rounded-full px-3 py-1 transition-colors"><i class="fas fa-file-lines mr-1"></i>定位合同原文</button>` : '<span class="text-[10px] text-gray-300 self-center">合同未约定，无法定位</span>'}
+                </div>
+              </div>
+            </div>
+          </div>`).join('')}
+          <div class="px-4 py-3 border-t border-gray-100 bg-red-50/40">
+            <div class="text-[11px] font-semibold text-red-500 mb-1"><i class="fas fa-comments mr-1"></i>修改建议与谈判话术</div>
+            <div class="text-[11px] text-gray-600 leading-relaxed">以上是风险提示与谈判建议，不构成法律结论。建议将 ${conflicts} 处冲突逐条与房东书面确认后再签约。</div>
+            <div class="flex flex-wrap gap-2 mt-2.5">
+              <button onclick="copyScript('${c.id}')" class="text-[11px] bg-gray-900 hover:bg-gray-700 text-white rounded-full px-3 py-1.5 transition-colors"><i class="fas fa-copy mr-1"></i>复制谈判话术</button>
+              <button onclick="send('物业费谁承担？')" class="text-[11px] bg-white border border-gray-200 hover:border-brand-300 hover:text-brand-600 text-gray-600 rounded-full px-3 py-1.5 transition-colors">追问：物业费谁承担？</button>
+              <button onclick="send('提前退租要付什么？')" class="text-[11px] bg-white border border-gray-200 hover:border-brand-300 hover:text-brand-600 text-gray-600 rounded-full px-3 py-1.5 transition-colors">追问：提前退租要付什么？</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    function copyScript(contractId) {
+      const c = getContract(contractId);
+      navigator.clipboard?.writeText(c?.negotiation || '');
+      toast('谈判话术已复制到剪贴板');
+    }
+    function showVerificationCard(houseId) {
+      if (!isLiveHouse(houseId)) { toast('历史演示数据仅供查看，请先导入到本次工作台'); return; }
+      const h = getHouse(houseId);
+      const c = h && h.contractId ? getContract(h.contractId) : null;
+      if (!h || !c) { toast('该房源尚未绑定合同'); return; }
+      switchView('chat');
+      beginChat(h.name + ' 合同核验');
+      ensureConv(h.name + ' 合同核验', 'fa-file-contract');
+      if (!started) { started = true; showThread(''); }
+      ctx.houseId = h.id; ctx.contractId = c.id;
+      renderCtxChips();
+      addAI(verifyCardHTML(h, c), true);
+    }
+
+    // ==================== 绑定合同流程 ====================
+    function openBindEntry() {
+      if (ctx.houseId) { bindContractEntry(ctx.houseId); return; }
+      if (activeHouses().length) {
+        switchView('houses');
+        toast('请先在目标房源上点击「绑定合同」');
+      } else {
+        toast('请先导入候选房源并设定目标房源');
+        openImport('batch');
+      }
+    }
+    function bindContractEntry(houseId) {
+      if (!isLiveHouse(houseId)) { toast('历史演示数据仅供查看，请先导入到本次工作台'); return; }
+      const h = getHouse(houseId);
+      if (!h) return;
+      if (h.contractId) { showVerificationCard(houseId); return; }
+      if (ctx.houseId !== houseId) { setTargetHouse(houseId, true); }
+      switchView('chat');
+      beginChat(h.name + ' 合同核验');
+      ensureConv(h.name + ' 合同核验', 'fa-file-contract');
+      if (!started) { started = true; showThread(''); }
+      lastFlow = skip => bindContractEntry(houseId); lastPrompt = '';
+      addAI(`
+        <div class="text-[14px] text-gray-800 mb-2.5 leading-relaxed">好的，将为目标房源 <b>${h.no} ${esc(h.name)}</b> 绑定合同。绑定后我会把房源承诺与合同条款逐项核验：</div>
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 flex flex-wrap gap-2.5">
+          <button onclick="triggerFilePick()" class="flex items-center gap-2 bg-gray-900 hover:bg-gray-700 text-white text-xs font-medium rounded-xl px-4 py-2.5 transition-colors"><i class="fas fa-file-pdf"></i>上传合同 PDF</button>
+          <button onclick="pastedContractFlow(DEMO_CONTRACT_TEXT)" class="flex items-center gap-2 bg-white border border-gray-200 hover:border-brand-300 text-gray-700 text-xs font-medium rounded-xl px-4 py-2.5 transition-colors"><i class="fas fa-paste"></i>粘贴合同文本（点我用示例）</button>
+          <span class="w-full text-[10px] text-gray-300">一期支持 PDF 与粘贴文本；Word / 图片 OCR 为规划能力</span>
+        </div>`, true);
+    }
+    function finishBindContract(c) {
+      contracts.unshift(c);
+      const h = c.boundHouseId ? getHouse(c.boundHouseId) : null;
+      if (h) h.contractId = c.id;
+      ctx.contractId = c.id;
+      renderNavCounts();
+      renderCtxChips();
+      const taskConvId = activeId;
+      runSteps(['解析合同（7 项关键条款）', '抽取当事人 / 金额 / 日期', `与房源 ${h ? h.no : ''} 的承诺逐项核验`], () => {
+        if (activeId !== taskConvId) return;
+        if (h) addAI(verifyCardHTML(h, c), true);
+        else addAI(`<div class="text-[14px] text-gray-800 leading-7">合同已加入「本次合同」。设定目标房源后可进行逐项核验。</div>`, true);
+        if (currentView === 'contracts') renderContracts();
+      });
+    }
+    function pastedContractFlow(text) {
+      lastFlow = null; lastPrompt = text;
+      beginChat('粘贴合同核验');
+      ensureConv((ctx.houseId ? (getHouse(ctx.houseId)?.name || '') + ' ' : '') + '合同核验', 'fa-file-contract');
+      if (!started) { started = true; showThread(''); }
+      addUser(`<div class="bg-gray-100 rounded-2xl rounded-tr-md px-4 py-3 text-[13px] text-gray-700 leading-relaxed">
+        <div class="text-[11px] text-gray-400 mb-1.5"><i class="fas fa-paste mr-1"></i>粘贴的合同文本（约 ${text.length} 字）</div>
+        ${esc(text.slice(0, 120))}<span class="text-gray-400">…</span></div>`);
+      if (text.length < 200) {
+        // 失败状态：文本过短
+        addAI(`<div class="text-[14px] text-gray-800 leading-7">
+          <p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-circle-exclamation text-red-400"></i> 解析失败</p>
+          文本过短，未识别为有效合同（缺少当事人、租期或租金等关键要素）。<br>
+          <b>建议：</b>粘贴完整合同全文，或上传 PDF 原件。</div>
+          <div class="mt-2.5"><button onclick="pastedContractFlow(DEMO_CONTRACT_TEXT)" class="text-xs bg-gray-900 text-white rounded-xl px-4 py-2.5"><i class="fas fa-rotate-right mr-1"></i>使用示例合同重试</button></div>`, true);
+        contracts.unshift(mkContract({ name: '粘贴的合同文本（过短）', source: '粘贴文本', status: 'failed', reason: '文本过短，未识别为有效合同' }));
+        renderNavCounts();
+        return;
+      }
+      const c = buildBoundContract('粘贴的合同文本', '粘贴文本', text.length + ' 字', ctx.houseId);
+      finishBindContract(c);
+    }
+
+    // ==================== 合同上传（PDF） ====================
+    function triggerFilePick() { fileInput.click(); }
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files[0];
+      fileInput.value = '';
+      if (f) addPendingAttachment(f);
+    });
+    function uploadFlow(file) {
+      const isPdf = /\.pdf$/i.test(file.name);
+      const size = file.size > 1048576 ? (file.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(file.size / 1024)) + ' KB';
+      beginChat(file.name.replace(/\.[^.]+$/, '') + ' 核验');
+      ensureConv(file.name.replace(/\.[^.]+$/, ''), 'fa-file-contract');
+      const taskConvId = activeId;
+      const msg = addUser(`
+        <div class="bg-white border border-gray-200 rounded-2xl rounded-tr-md px-3 py-2.5 shadow-sm w-[280px]" role="status" aria-live="polite">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg ${isPdf ? 'bg-red-50 text-red-500 border-red-100' : 'bg-gray-50 text-gray-400 border-gray-200'} flex items-center justify-center border shrink-0"><i class="fas fa-file${isPdf ? '-pdf' : ''}"></i></div>
+            <div class="text-left min-w-0 flex-1">
+              <div class="text-[13px] font-medium text-gray-900 truncate">${esc(file.name)}</div>
+              <div class="text-[11px] text-gray-500 upload-status">上传中…</div>
+            </div>
+          </div>
+          <div class="h-1 bg-gray-100 rounded-full mt-2.5 overflow-hidden"><div class="upload-bar h-full bg-brand-500 rounded-full" style="width:5%"></div></div>
+        </div>`);
+      const bar = msg ? msg.querySelector('.upload-bar') : null;
+      const status = msg ? msg.querySelector('.upload-status') : null;
+      let p = 5;
+      setGenerating(true);
+      const iv = setInterval(() => {
+        if (activeId !== taskConvId) { clearInterval(iv); return; }
+        p = Math.min(100, p + Math.random() * 22);
+        if (bar) bar.style.width = p + '%';
+        if (p >= 100) {
+          clearInterval(iv);
+          setGenerating(false);
+          if (isPdf) {
+            if (status) status.innerHTML = `${size} · <span class="text-green-600"><i class="fas fa-check mr-0.5"></i>已加入当前对话</span>`;
+            const c = buildBoundContract(file.name, '上传', size, ctx.houseId);
+            finishBindContract(c);
+          } else {
+            if (status) status.innerHTML = `${size} · <span class="text-red-500">格式暂不支持</span>`;
+            if (bar) bar.classList.replace('bg-brand-500', 'bg-red-300');
+            addAI(`<div class="text-[14px] text-gray-800 leading-7">
+              <p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-circle-exclamation text-amber-500"></i> 无法解析该文件</p>
+              合同入口一期仅支持 <b>PDF</b> 与<b>粘贴文本</b>，Word / 图片（OCR）为规划能力。<br>
+              你可以：① 把合同导出为 PDF 重新上传；② 直接<b>粘贴合同全文</b>到输入框。</div>`, true);
+            contracts.unshift(mkContract({ name: file.name, source: '上传', status: 'failed', reason: '格式暂不支持' }));
+            renderNavCounts();
+          }
+        }
+      }, 160);
+      activeTask = { type: 'interval', id: iv, convId: taskConvId, onStop: () => { if (status) status.textContent = '已取消上传'; } };
+    }
+
+    // ==================== 附件暂存 ====================
+    let pendingAttachments = [];
+    function fmtSize(size) { return size > 1048576 ? (size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(size / 1024)) + ' KB'; }
+    function addPendingAttachment(file) {
+      const kind = file.type.startsWith('image/') ? 'image' : 'file';
+      pendingAttachments.push({ id: nid(), file, kind, url: kind === 'image' ? URL.createObjectURL(file) : null });
+      renderPendingChips();
+    }
+    function removePending(id) {
+      const a = pendingAttachments.find(x => x.id === id);
+      if (a && a.url) URL.revokeObjectURL(a.url);
+      pendingAttachments = pendingAttachments.filter(x => x.id !== id);
+      renderPendingChips();
+    }
+    function renderPendingChips() {
+      const box = document.getElementById('attachChips');
+      if (!box) return;
+      box.classList.toggle('hidden', !pendingAttachments.length);
+      box.innerHTML = pendingAttachments.map(a => `
+        <span class="inline-flex items-center gap-2 text-[11px] text-gray-600 bg-gray-100 border border-gray-200 rounded-xl p-1.5 pr-2">
+          <span class="w-8 h-8 rounded-lg ${/\.pdf$/i.test(a.file.name) ? 'bg-red-50 text-red-500' : 'bg-white text-gray-400'} border border-gray-200 flex items-center justify-center shrink-0"><i class="fas fa-file${/\.pdf$/i.test(a.file.name) ? '-pdf' : ''} text-xs"></i></span>
+          <span class="min-w-0"><span class="block max-w-[140px] truncate">${esc(a.file.name)}</span><span class="block text-[10px] text-gray-400">${fmtSize(a.file.size)}</span></span>
+          <button onclick="removePending('${a.id}')" title="移除" class="w-4 h-4 rounded-full hover:bg-gray-200 text-gray-400 flex items-center justify-center shrink-0"><i class="fas fa-xmark text-[9px]"></i></button>
+        </span>`).join('');
+    }
+    function handlePaste(e) {
+      const files = [...(e.clipboardData?.files || [])];
+      if (!files.length) return;
+      e.preventDefault();
+      files.forEach(addPendingAttachment);
+    }
+    function imageFlow(file, url) {
+      const size = fmtSize(file.size);
+      url = url || URL.createObjectURL(file);
+      beginChat('图片附件咨询');
+      ensureConv('图片附件咨询', 'fa-image');
+      const taskConvId = activeId;
+      addUser(`
+        <div class="bg-white border border-gray-200 rounded-2xl rounded-tr-md p-2.5 shadow-sm w-[240px]">
+          <img src="${url}" class="w-full h-32 object-cover rounded-xl border border-gray-100" alt="粘贴的图片">
+          <div class="flex items-center gap-1.5 mt-2 px-1 text-[11px] text-gray-500">
+            <i class="fas fa-image text-gray-400"></i><span class="truncate">${esc(file.name || '粘贴的图片')}</span><span class="shrink-0">· ${size}</span>
+          </div>
+        </div>`);
+      const t = addAI(`<div class="inline-flex items-center gap-1.5 py-2">
+        <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+        <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+        <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span></div>`);
+      setGenerating(true);
+      const to = setTimeout(() => {
+        if (activeId !== taskConvId) return;
+        t.remove();
+        streamAnswer(`<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-circle-info text-brand-600"></i> 图片已收到</p>
+          <b>图片内容识别（OCR）是规划能力</b>，我暂时读不了图里的文字。<br><br>
+          如果是合同照片 / 截图，建议：① 导出为 <b>PDF</b> 上传；② 或直接<b>粘贴合同文字</b>。`, taskConvId);
+      }, 600);
+      activeTask = { type: 'timeout', id: to, convId: taskConvId, onStop: () => t.remove() };
+    }
+
+    // ==================== 粘贴房源（输入框直贴） ====================
+    function pastedHousesFlow(text) {
+      beginChat('房源整理');
+      ensureConv('房源整理', 'fa-building');
+      if (!started) { started = true; showThread(''); }
+      addUser(`<div class="bg-gray-100 rounded-2xl rounded-tr-md px-4 py-3 text-[13px] text-gray-700 leading-relaxed">
+        <div class="text-[11px] text-gray-400 mb-1.5"><i class="fas fa-paste mr-1"></i>粘贴的房源信息</div>${esc(text.slice(0, 140))}${text.length > 140 ? '<span class="text-gray-400">…</span>' : ''}</div>`);
+      const isDemo = text.trim() === DEMO_BATCH_TEXT.trim();
+      const list = isDemo ? demoHouses('batch') : parseHousesInput(text);
+      if (!list.length) {
+        addAI(`<div class="text-[14px] text-gray-800 leading-7">没有识别到有效房源条目。每条至少包含租金或户型信息，也可以点击左下角「导入房源」用批量粘贴或文件导入。</div>`, true);
+        return;
+      }
+      if (!isDemo) {
+        const batchId = 'B-' + String(++batchSeq).padStart(3, '0');
+        list.forEach(h => { h.source = 'batch'; h.batch = batchId; });
+      }
+      showConfirm(list, '对话粘贴');
+      toast('请先确认 AI 提取的字段，确认后加入候选');
+    }
+
+    // ==================== 合同列表 ====================
+    const STATUS_UI = {
+      done: () => `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">已完成</span>`,
+      failed: () => `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100">失败</span>`,
+    };
+    function renderContracts() {
+      const box = document.getElementById('contractList');
+      if (!contracts.length) {
+        box.innerHTML = `<div class="text-center py-16 text-gray-400">
+          <i class="fas fa-file-circle-question text-3xl mb-3 text-gray-200"></i>
+          <div class="text-[13px]">还没有合同。先在候选房源中选定目标房源，再绑定合同进行核验。</div>
+          <button onclick="switchView('houses')" class="mt-4 text-xs bg-gray-900 text-white rounded-xl px-4 py-2.5">去看候选房源</button></div>`;
+        return;
+      }
+      box.innerHTML = contracts.map(c => {
+        const h = c.boundHouseId ? getHouse(c.boundHouseId) : null;
+        return `<div class="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-shadow">
+          <div class="flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-xl ${c.status === 'failed' ? 'bg-gray-50 text-gray-400 border-gray-200' : 'bg-red-50 text-red-500 border-red-100'} border flex items-center justify-center shrink-0"><i class="fas fa-file-pdf"></i></div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] font-bold text-gray-400 bg-gray-100 rounded px-1.5 py-0.5">${c.no}</span>
+                <span class="text-[14px] font-medium text-gray-900 truncate">${esc(c.name)}</span>
+                ${STATUS_UI[c.status]()}
+                ${ctx.contractId === c.id ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-600 border border-brand-100">当前合同</span>' : ''}
+              </div>
+              <div class="text-[11px] text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
+                <span><i class="fas fa-arrow-up-from-bracket text-[9px] mr-1"></i>${c.source}</span>
+                <span>${c.time}</span>
+                ${h ? `<span class="text-emerald-600"><i class="fas fa-link text-[9px] mr-0.5"></i>绑定 ${h.no} ${esc(h.name)}</span>` : '<span>未绑定房源</span>'}
+                ${c.status === 'failed' ? `<span class="text-red-400">${esc(c.reason)}</span>` : ''}
+              </div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              ${c.status === 'done' ? `
+                <button onclick="openContract(null, '${c.id}')" class="h-8 px-2.5 rounded-lg text-xs text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"><i class="fas fa-file-lines mr-1"></i>原文</button>
+                ${h ? `<button onclick="showVerificationCard('${h.id}')" class="h-8 px-2.5 rounded-lg text-xs text-brand-600 hover:bg-brand-50 transition-colors"><i class="fas fa-code-compare mr-1"></i>核验</button>` : ''}` : ''}
+              ${c.status === 'failed' ? `<button onclick="contracts=contracts.filter(x=>x.id!=='${c.id}');renderNavCounts();renderContracts();pastedContractFlow(DEMO_CONTRACT_TEXT)" class="h-8 px-2.5 rounded-lg text-xs text-brand-600 hover:bg-brand-50 transition-colors"><i class="fas fa-rotate-right mr-1"></i>重新解析</button>` : ''}
+              <button onclick="askDeleteContract('${c.id}')" title="删除" class="w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"><i class="fas fa-trash-can text-[11px]"></i></button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    function askDeleteContract(id) {
+      const c = getContract(id);
+      askConfirm('删除合同', `确定删除「${c.name}」吗？关联的核验结果会一并删除。`, () => {
+        contracts = contracts.filter(x => x.id !== id);
+        houses.forEach(h => { if (h.contractId === id) h.contractId = null; });
+        if (ctx.contractId === id) ctx.contractId = null;
+        renderNavCounts();
+        renderContracts();
+        renderCtxChips();
+        toast('合同已删除');
+      });
+    }
+
+    // ==================== 合同原文抽屉 ====================
+    function buildContract(target) {
+      if (!target) return;
+      const demoBadge = target.isDemoParse || target.name.includes('演示解析') ? '<span class="text-[10px] font-normal bg-amber-100 text-amber-700 border border-amber-200 rounded px-1.5 py-0.5 align-middle ml-1">演示解析</span>' : '';
+      document.getElementById('drawerTitle').innerHTML = `${esc(target.name)} ${demoBadge}`;
+      document.getElementById('drawerMeta').innerText = `${target.no} · 已解析 ${target.clausesList.length} 项条款 · ${target.size || ''}`;
+      document.getElementById('contractBody').innerHTML = target.clausesList.map(([id, title, text]) => `
+        <div class="${target.riskClauses.has(id) ? 'pl-3 border-l-2 border-amber-300' : ''}">
+          <h4 class="text-sm font-semibold text-gray-900 mb-1">${title}</h4>
+          <p>${target.riskClauses.has(id) ? `<mark class="clause">${text}</mark>` : text}</p>
+          ${target.riskClauses.has(id) ? `<div class="text-[11px] text-amber-600 mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>与房源承诺冲突或存在风险</div>` : ''}
+        </div>
+        <div id="cl-${id}"></div>`).join('');
+    }
+    function openContract(clauseId, contractId) {
+      const target = (contractId ? getContract(contractId) : null)
+        || (ctx.contractId ? getContract(ctx.contractId) : null)
+        || contracts.find(c => c.status === 'done');
+      if (!target) { toast('暂无已解析的合同'); return; }
+      lastActiveElement = document.activeElement;
+      buildContract(target);
+      const drawer = document.getElementById('contractDrawer');
+      drawer.classList.remove('hidden');
+      drawer.setAttribute('aria-hidden', 'false');
+      drawer.removeAttribute('inert');
+      document.getElementById('overlay').classList.remove('hidden');
+      requestAnimationFrame(() => {
+        drawer.classList.remove('translate-x-full');
+      });
+      if (clauseId) {
+        setTimeout(() => {
+          const el = document.getElementById('cl-' + clauseId);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 350);
+      }
+      drawer.querySelector('button')?.focus();
+    }
+    function closeContract() {
+      const drawer = document.getElementById('contractDrawer');
+      drawer.classList.add('translate-x-full');
+      drawer.setAttribute('aria-hidden', 'true');
+      drawer.setAttribute('inert', '');
+      document.getElementById('overlay').classList.add('hidden');
+      setTimeout(() => {
+        if (drawer.classList.contains('translate-x-full')) drawer.classList.add('hidden');
+      }, 300);
+      if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+        lastActiveElement.focus();
+        lastActiveElement = null;
+      }
+    }
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (!document.getElementById('houseDrawer').classList.contains('translate-x-full')) closeHouseDrawer();
+        else if (!document.getElementById('contractDrawer').classList.contains('translate-x-full')) closeContract();
+      }
+    });
+
+    // ==================== 上下文租房常识问答 ====================
+    const cite = (clauseId, cid, label) => `<button onclick="openContract(${clauseId}, '${cid}')" class="cite-chip"><i class="fas fa-quote-left text-[8px]"></i>${label || '第 ' + clauseId + ' 条'}</button>`;
+    function send(text, skipUser) {
+      lastPrompt = text; lastFlow = null;
+      beginChat(text.length > 12 ? text.slice(0, 12) + '…' : text);
+      if (!skipUser) addUser(textBubble(text));
+      const taskConvId = activeId;
+      const t = addAI(`<div class="inline-flex items-center gap-1.5 py-2" id="typing">
+        <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+        <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+        <span class="typing-dot w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span></div>`);
+      setGenerating(true);
+      const to = setTimeout(() => {
+        if (activeId !== taskConvId) return;
+        t.remove();
+        if (!serviceOnline) {
+          addAI(`<div class="text-[14px] text-gray-800 leading-7">
+            <p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-cloud-bolt text-red-400"></i> 回答失败</p>
+            服务暂时不可用（网络或服务异常），你的对话与上下文已保留。</div>
+            <div class="mt-2.5 flex gap-2">
+              <button onclick="toggleService(); send(lastPrompt, true)" class="text-xs bg-gray-900 text-white rounded-xl px-4 py-2.5"><i class="fas fa-rotate-right mr-1"></i>恢复服务并重试</button>
+              <button onclick="toggleService()" class="text-xs bg-white border border-gray-200 rounded-xl px-4 py-2.5">仅恢复服务</button>
+            </div>`, true);
+          setGenerating(false);
+          return;
+        }
+        streamAnswer(answerFor(text), taskConvId);
+      }, 700);
+      activeTask = { type: 'timeout', id: to, convId: taskConvId, onStop: () => t.remove() };
+    }
+
+    const KNOWLEDGE_ANSWER = `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-book-open text-brand-600"></i> 租房知识 · 通用建议（当前无房源 / 合同上下文）</p>
+      这个问题我可以帮你拆解。为了给出更贴合的建议，可以补充一下：你所在的<b>城市</b>、目前处于<b>看房 / 已签约 / 租住中 / 退租</b>哪个阶段？<br><br>
+      如果手里有候选房源或合同，也可以先导入 / 绑定，我会结合具体内容回答。`;
+
+    function answerFor(text, overrideH, overrideC) {
+      const h = overrideH !== undefined ? overrideH : (ctx.houseId ? getHouse(ctx.houseId) : null);
+      const c = overrideC !== undefined ? overrideC : (ctx.contractId ? getContract(ctx.contractId) : null);
+
+      if (/买房|房价|走势|预测/.test(text)) {
+        return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-circle-minus text-gray-400"></i> 超出当前能力范围</p>
+          我专注于<b>租房决策</b>（候选房源比较、合同核验、租房常识），不做房价走势预测——这类问题缺乏可核实的依据，我不想给你看似确定的误导性结论。`;
+      }
+      if (/法律|法规|民法典|政策|规定/.test(text)) {
+        return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-scale-balanced text-brand-600"></i> 法规政策 · 请注意适用范围</p>
+          与租房最相关的是《中华人民共和国民法典》合同编租赁合同章节（第 703—734 条），例如第 710 条：承租人按约定方法使用租赁物致损耗的，不承担赔偿责任。<br><br>
+          <b>来源：</b>国家法律法规数据库（flk.npc.gov.cn） · <b>适用范围：</b>全国，地方性租赁条例可能另有规定。<br>
+          <span class="text-amber-600"><i class="fas fa-triangle-exclamation mr-1"></i>涉及具体纠纷时，请以官方文本为准或咨询专业人士，我不输出法律结论。</span>`;
+      }
+      if (/物业费/.test(text)) {
+        if (c && h) {
+          return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 结合你的合同与房源 · 引用 ${cite(9, c.id)}</p>
+            ${cite(9, c.id)} 约定：<b>物业费由乙方（你）承担</b>。但你的房源 ${h.no} 记录的是「${esc(h.propertyBear || '物业费 ' + (h.propertyFee || '?') + ' 元/月')}」，两者<b class="text-red-600">冲突</b>。<br><br>
+            <b>建议：</b>签约前把物业费承担方写回与沟通一致的版本；如果房东不愿修改，至少把金额 ${h.propertyFee != null ? fmt(h.propertyFee) + ' 元/月' : '（待确认）'} 写进合同，避免后期加价。`;
+        }
+        if (h) {
+          return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-building text-emerald-500"></i> 基于当前房源 ${h.no}（尚未绑定合同）</p>
+            房源记录：物业费 ${h.propertyFee != null ? fmt(h.propertyFee) + ' 元/月' : '<span class="text-amber-600">待确认</span>'}${h.propertyBear ? '，' + esc(h.propertyBear) : ''}。<br><br>
+            注意：这只是房源侧信息，<b>最终要以合同条款为准</b>。绑定合同后我可以逐项核验是否一致。`;
+        }
+        return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-book-open text-brand-600"></i> 租房知识 · 通用建议</p>
+          物业费承担没有统一规定，常见三种：房东全包、租客全付、按约定分摊。<b>关键是在合同里写清楚金额与承担方</b>，口头承诺退租时很难举证。<br><br>
+          你目前在哪个城市、处于看房还是已签约阶段？有合同的话可以直接绑定，我帮你看具体条款。`;
+      }
+      if (/退租|解约|提前退/.test(text)) {
+        if (c) {
+          return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 优先引用你的合同 · ${cite(8, c.id)}</p>
+            你的合同没有单独的「提前退租」条款，但 ${cite(8, c.id)} 约定违约金为<b class="text-red-600">三个月租金</b>——提前退租在合同法理上常被认定为违约并适用该条。<br><br>
+            <b>法律依据与酌减参考：</b>根据《中华人民共和国民法典》第五百八十五条第二款及相关司法解释，约定的违约金过分高于造成的损失的，当事人可以请求人民法院或者仲裁机构予以适当减少。实践中通常以房东因提前解约产生的实际直接损失（如房屋重新出租合理空置期，通常在 1 个月左右）为衡量基础，具体视个案证据综合认定，不宜直接推定为某一固定减免标准。<br><br>
+            <b>签约协商建议（非确定性裁判结论）：</b>建议签约前协商将违约金修改为 1 个月租金，并补充「提前 30 日书面通知且协助转租可免责退押金」。`;
+        }
+        if (h) {
+          return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-building text-emerald-500"></i> 当前只有房源 ${h.no}，未绑定合同</p>
+            提前退租的成本主要看合同里的<b>违约金条款</b>和<b>押金退还条件</b>，这些房源信息里没有。建议先绑定合同，我可以帮你定位对应条款。<br><br>
+            <b>通用经验：</b>提前 30 日书面通知、配合找到下家、保留沟通记录，能显著降低纠纷风险。具体权利义务以最终签订的合同为准。`;
+        }
+        return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-book-open text-brand-600"></i> 租房知识 · 通用建议</p>
+          提前退租一般涉及：① 违约金约定；② 押金结算退还；③ 转租免责约定。<br><br>
+          你所在的城市和租住阶段是？有合同可以绑定后我给你逐条分析。`;
+      }
+      if (/违约金/.test(text)) {
+        if (c) {
+          return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 已检索你的合同 · 引用 ${cite(8, c.id)}</p>
+            你的合同约定违约金为 <span class="text-red-600 font-medium">3 个月租金（18,000 元）</span>。<br><br>
+            <b>法律依据与考量依据：</b>根据《民法典》第五百八十五条及《最高人民法院关于适用〈民法典〉合同编通则若干问题的解释》第六十五条，约定的违约金超过造成损失的百分之三十的，一般可以认定为“过分高于造成的损失”。裁判中通常以房东实际空置期损失为基础进行综合裁量，具体视实际损失、合同履行情况等认定，不构成确定性胜诉或调减结论。<br><br>
+            <b>协商话术参考（仅供沟通建议）：</b>“三个月租金作为违约金相对偏高，签约前建议参考行业通常做法调整为一个月的违约金标准，双方履行都更安心。”`;
+        }
+        return KNOWLEDGE_ANSWER;
+      }
+      if (/押金/.test(text)) {
+        if (c) {
+          return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 结合你的合同 · 引用 ${cite(5, c.id)}</p>
+            ${cite(5, c.id)} 约定<b>押二付一</b>，押金 12,000 元，但未写明退还时限与扣款标准——退租时容易扯皮。<br><br>
+            <b>证据链建议：</b>① 入住拍全屋视频并让房东确认；② 退租前 7 日书面通知；③ 交房当天双方签《房屋交接单》。`;
+        }
+        return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-book-open text-brand-600"></i> 租房知识 · 经验建议，各地执行有差异</p>
+          退押金关键在<b>证据链</b>：① 入住时拍全屋视频并让房东确认；② 退租前 7 日发书面《退租通知》；③ 交房当天双方签《房屋交接单》。<br><br>
+          若房东无正当理由克扣，可凭合同 + 转账记录向 12345 或住建委投诉。你在哪个城市、现在到哪个阶段了？`;
+      }
+      // 默认：有上下文则总结上下文，否则通用引导
+      if (h || c) {
+        return `<p class="font-medium text-gray-900 mb-1.5 flex items-center gap-1.5"><i class="fas fa-check-circle text-green-500"></i> 当前上下文</p>
+          ${h ? `当前房源 <b>${h.no} ${esc(h.name)}</b>：月租 ${h.rent ? fmt(h.rent) : '待确认'} 元，${h.deposit || '押金待确认'}，通勤 ${h.commuteMin ? h.commuteMin + ' 分钟' : '待确认'}。<br>` : ''}
+          ${c ? `当前合同 <b>${c.no}</b> 已绑定，可问“物业费谁承担”“提前退租要付什么”“违约金怎么谈”。` : '尚未绑定合同，绑定后可逐项核验承诺与条款。'}`;
+      }
+      return KNOWLEDGE_ANSWER;
+    }
+
+    // ==================== 种子会话 ====================
+    function buildSeed(seed) {
+      const store = getDemoStore();
+      if (seed === 'rec') {
+        const sharedExcluded = store.houses.filter(h => h.shared && !prefs.allowShared).length;
+        return userMsgHTML(textBubble('预算 6,000、通勤 45 分钟以内、必须独立卫浴，帮我推荐'))
+          + aiMsgHTML(recCardHTMLForDemo(store.houses, sharedExcluded), true);
+      }
+      if (seed === 'verify') {
+        const h = store.targetHouse;
+        const c = store.targetContract;
+        return userMsgHTML(`<div class="bg-white border border-gray-200 rounded-2xl rounded-tr-md px-3 py-2.5 flex items-center gap-3 shadow-sm">
+            <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-500 border border-red-100 shrink-0"><i class="fas fa-file-pdf"></i></div>
+            <div class="text-left min-w-0"><div class="text-[13px] font-medium text-gray-900 truncate">北京市房屋租赁合同（望京）.pdf</div><div class="text-[11px] text-gray-500">2.4 MB · 绑定 ${h.no} · 演示快照</div></div></div>`)
+          + aiMsgHTML(verifyCardHTML(h, c, { readOnly: true }), true)
+          + userMsgHTML(textBubble('物业费谁承担？'))
+          + aiMsgHTML(`<div class="text-[14px] text-gray-800 leading-7">${answerFor('物业费谁承担？', h, c)}</div>`, true);
+      }
+      return '';
+    }
+
+    // ==================== init ====================
+    convs = [
+      { id: nid(), title: '望京一居 合同核验', icon: 'fa-file-contract', seed: 'verify', html: null, started: true },
+      { id: nid(), title: '候选房源推荐', icon: 'fa-building', seed: 'rec', html: null, started: true },
+    ];
+    renderChatList();
+    renderNavCounts();
   </script>
 </body>
 </html>
