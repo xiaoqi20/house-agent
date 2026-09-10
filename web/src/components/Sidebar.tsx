@@ -43,9 +43,7 @@ export function Sidebar() {
     <aside className="w-[260px] bg-[#f7f7f8] border-r border-gray-200/80 flex-col shrink-0 hidden md:flex">
       <div className="h-14 flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-sm">
-            <i className="fas fa-house-signal text-[11px]"></i>
-          </div>
+          <img src="/mark-96.png" alt="RentGraph" className="w-7 h-7 shrink-0" />
           <span className="font-semibold text-[15px] tracking-tight text-gray-900">RentGraph</span>
           <span className="px-1.5 py-0.5 bg-gray-200/80 text-gray-500 text-[10px] font-semibold rounded">Beta</span>
         </div>

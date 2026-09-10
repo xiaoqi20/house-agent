@@ -7,8 +7,8 @@ import { MessageView } from './MessageView';
 function EmptyState() {
   return (
     <div id="emptyState" className="min-h-full flex flex-col items-center justify-center px-6 py-10">
-      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-md mb-5 fade-in">
-        <i className="fas fa-house-signal"></i>
+      <div className="w-11 h-11 rounded-2xl bg-brand-50 flex items-center justify-center mb-5 fade-in">
+        <img src="/mark-96.png" alt="RentGraph" className="w-7 h-7" />
       </div>
       <h1
         className="text-2xl md:text-[28px] md:leading-8 font-semibold text-gray-900 tracking-tight fade-in"

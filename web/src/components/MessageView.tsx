@@ -61,8 +61,8 @@ export const MessageView = memo(function MessageView({ msg }: { msg: Message }) 
 
   return (
     <div className="flex gap-3.5 msg-enter ai-msg group">
-      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
-        <i className="fas fa-house-signal text-[10px]"></i>
+      <div className="w-7 h-7 rounded-lg bg-brand-50 flex items-center justify-center shrink-0 mt-0.5">
+        <img src="/mark-96.png" alt="RentGraph" className="w-[18px] h-[18px]" />
       </div>
       <div className="flex-1 min-w-0 pt-0.5">
         <div className="ai-body" ref={bodyRef}>
