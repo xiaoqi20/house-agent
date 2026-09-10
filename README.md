@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="doc/images/01-home.png" width="880" alt="RentGraph 首页：单条 / 批量 / 开始筛选三个入口">
+  <img src="web/public/icon-192.png" width="88" alt="RentGraph 图标：两栏条款逐条对齐，中间一个异常点" >
   <h1>RentGraph · 租房决策工作台</h1>
   <p><strong>把「房东怎么说的」和「合同怎么写的」逐条对上，再决定签不签。</strong></p>
   <p>
@@ -21,6 +21,8 @@
 </div>
 
 ---
+
+<img src="doc/images/01-home.png" width="880" alt="RentGraph 首页：单条 / 批量 / 开始筛选三个入口">
 
 ## 它解决什么问题
 
