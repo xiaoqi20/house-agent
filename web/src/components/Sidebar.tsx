@@ -1,181 +1,142 @@
-import { useQuery } from "@tanstack/react-query";
+import { useStore } from '../store';
 import {
-  ChevronDown,
-  FileText,
-  MessageSquare,
-  Network,
-  Plus,
-} from "lucide-react";
-import { useState } from "react";
-import { listContractsApiV1ContractsGet } from "@/api/generated/rentGraphAPI";
-import { errorMessage } from "@/api/errors";
-import { timeAgo } from "@/lib/format";
-import { useChat } from "@/stores/chatStore";
-import type { ContractStatus } from "@/api/model";
-
-const STATUS_LABEL: Record<ContractStatus, string> = {
-  uploaded: "待分析",
-  analyzing: "分析中",
-  done: "已完成",
-  failed: "失败",
-};
+  askDeleteConv,
+  newChat,
+  openConversation,
+  renameConv,
+  switchView,
+  toast,
+} from '../controller';
 
 export function Sidebar() {
-  const reset = useChat((s) => s.reset);
-  const openContract = useChat((s) => s.openContract);
-  const reviewContract = useChat((s) => s.reviewContract);
-  const contractId = useChat((s) => s.contractId);
-  const started = useChat((s) => s.started);
-  const showToast = useChat((s) => s.showToast);
-  const [open, setOpen] = useState(true);
+  const convs = useStore((s) => s.convs);
+  const activeId = useStore((s) => s.activeId);
+  const currentView = useStore((s) => s.currentView);
+  const houses = useStore((s) => s.houses);
+  const contracts = useStore((s) => s.contracts);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["contracts"],
-    queryFn: () => listContractsApiV1ContractsGet(),
-    refetchInterval: 15000,
-  });
+  const houseCount = houses.filter((h) => h.status === 'active').length;
+
+  const navItem = (
+    view: 'chat' | 'houses' | 'contracts',
+    icon: string,
+    label: string,
+    count?: number,
+  ) => (
+    <button
+      data-view={view}
+      onClick={() => switchView(view)}
+      className={`nav-item ${
+        currentView === view ? 'active' : ''
+      } w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-gray-600 border border-transparent hover:bg-gray-200/50 transition-colors`}
+    >
+      <i className={`fas ${icon} w-4 text-center text-gray-400`}></i> {label}
+      {count !== undefined && (
+        <span className="ml-auto text-[10px] bg-gray-200 text-gray-500 font-semibold px-1.5 py-0.5 rounded-md">
+          {count}
+        </span>
+      )}
+    </button>
+  );
 
   return (
-    <aside className="w-[240px] bg-gray-50 border-r border-gray-200 flex-col flex-shrink-0 hidden md:flex">
-      <div className="h-16 flex items-center px-5">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-sm">
-            <Network size={15} />
+    <aside className="w-[260px] bg-[#f7f7f8] border-r border-gray-200/80 flex-col shrink-0 hidden md:flex">
+      <div className="h-14 flex items-center justify-between px-4 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-sm">
+            <i className="fas fa-house-signal text-[11px]"></i>
           </div>
-          <span className="font-bold text-[16px] tracking-tight text-gray-900">
-            RentGraph
-          </span>
-          <span className="px-1.5 py-0.5 bg-gray-200 text-gray-600 text-[10px] font-bold rounded uppercase">
-            Beta
-          </span>
+          <span className="font-semibold text-[15px] tracking-tight text-gray-900">RentGraph</span>
+          <span className="px-1.5 py-0.5 bg-gray-200/80 text-gray-500 text-[10px] font-semibold rounded">Beta</span>
         </div>
       </div>
 
-      <div className="px-4">
+      <div className="px-3 pt-1">
         <button
-          onClick={reset}
-          className="w-full bg-brand-500 hover:bg-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2"
+          onClick={newChat}
+          className="w-full bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm text-gray-800 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all flex items-center gap-2.5"
         >
-          <Plus size={14} /> 新建分析
+          <i className="fas fa-plus text-xs text-gray-500"></i> 新对话
+          <span className="ml-auto text-[10px] text-gray-400 border border-gray-200 rounded px-1 py-0.5">⌘N</span>
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-4 mt-5 space-y-1">
-        {started && (
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-900 bg-white border border-gray-200 shadow-sm">
-            <MessageSquare
-              size={15}
-              className="w-5 shrink-0 justify-center text-gray-700"
-            />{" "}
-            当前会话
-          </button>
-        )}
+      <nav className="px-3 mt-4 space-y-0.5" id="mainNav">
+        {navItem('chat', 'fa-comments', '对话工作台')}
+        {navItem('houses', 'fa-building', '本次候选房源', houseCount)}
+        {navItem('contracts', 'fa-file-contract', '本次合同', contracts.length)}
+      </nav>
 
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-        >
-          <span className="flex items-center gap-3">
-            <FileText
-              size={15}
-              className="w-5 shrink-0 justify-center text-gray-400"
-            />{" "}
-            我的合同
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="text-[10px] bg-gray-200 text-gray-600 font-bold px-1.5 py-0.5 rounded">
-              {data?.length ?? 0}
-            </span>
-            <ChevronDown
-              size={12}
-              className={`text-gray-400 transition-transform ${open ? "" : "-rotate-90"}`}
-            />
-          </span>
-        </button>
-
-        {open && (
-          <div className="mb-2">
-            {error && (
-              <div className="px-3 py-1.5 text-[11px] text-red-500">
-                {errorMessage(error, "合同列表加载失败")}
-              </div>
-            )}
-            {isLoading && !error && (
-              <div className="px-3 py-1.5 text-[11px] text-gray-400">
-                加载中…
-              </div>
-            )}
-            {data && data.length === 0 && (
-              <div className="px-3 py-1.5 text-[11px] text-gray-400">
-                还没有合同，粘贴或上传一份试试
-              </div>
-            )}
-            <ul className="space-y-0.5">
-              {data?.map((c) => (
-                <li key={c.id} className="group relative">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-3 mt-6">
+        <div className="text-[11px] font-medium text-gray-400 px-3 mb-1.5">最近对话</div>
+        <div className="space-y-0.5" id="chatList">
+          {convs.length === 0 ? (
+            <div className="text-[11px] text-gray-300 px-3 py-2">暂无历史对话</div>
+          ) : (
+            convs.map((c) => (
+              <div className="chat-item group relative" key={c.id}>
+                <button
+                  onClick={() => openConversation(c.id)}
+                  className={`w-full text-left pl-3 pr-14 py-2 rounded-lg text-[13px] truncate transition-colors ${
+                    c.id === activeId ? 'text-gray-800 bg-gray-200/60' : 'text-gray-600 hover:bg-gray-200/60'
+                  }`}
+                >
+                  <i className={`fas ${c.icon} text-[10px] text-gray-400 mr-2`}></i>
+                  {c.title}
+                </button>
+                <div className="chat-ops absolute right-1.5 top-1/2 -translate-y-1/2 flex gap-0.5">
                   <button
-                    onClick={() =>
-                      c.status === "done" || c.status === "failed"
-                        ? openContract(c.id)
-                        : reviewContract(c.id)
-                    }
-                    title={c.status === "done" ? "查看原文与风险" : "开始分析"}
-                    className={`w-full text-left pl-3 pr-2 py-1.5 rounded-lg transition-colors hover:bg-gray-100 ${
-                      contractId === c.id
-                        ? "bg-white border border-gray-200"
-                        : ""
-                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      renameConv(c.id);
+                    }}
+                    title="重命名"
+                    className="w-6 h-6 rounded-md text-gray-400 hover:text-gray-700 hover:bg-white flex items-center justify-center"
                   >
-                    <div className="text-[12px] text-gray-700 truncate">
-                      {c.filename ?? `合同 #${c.id}`}
-                    </div>
-                    <div className="text-[10px] text-gray-400 flex items-center gap-1.5">
-                      <span
-                        className={
-                          c.status === "done"
-                            ? "text-green-600"
-                            : c.status === "failed"
-                              ? "text-red-500"
-                              : "text-gray-400"
-                        }
-                      >
-                        {STATUS_LABEL[c.status]}
-                      </span>
-                      <span>·</span>
-                      <span>{timeAgo(c.created_at)}</span>
-                      {c.health_score != null && (
-                        <span className="ml-auto text-gray-500">
-                          健康度 {c.health_score}
-                        </span>
-                      )}
-                    </div>
+                    <i className="fas fa-pen text-[10px]"></i>
                   </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="pt-6 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
-          最近对话
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      askDeleteConv(c.id);
+                    }}
+                    title="删除"
+                    className="w-6 h-6 rounded-md text-gray-400 hover:text-red-500 hover:bg-white flex items-center justify-center"
+                  >
+                    <i className="fas fa-trash-can text-[10px]"></i>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
-        <button
-          onClick={() => showToast("一期不做会话持久化，当前会话刷新即清空")}
-          className="w-full flex items-center gap-2.5 text-left px-3 py-2 rounded-xl text-[13px] text-gray-500 hover:bg-gray-100 truncate transition-colors"
-        >
-          <MessageSquare size={13} className="shrink-0 text-gray-400" />
-          {started ? "当前会话（未保存）" : "暂无会话"}
-        </button>
       </div>
 
-      <div className="p-4 border-t border-gray-200 mt-auto">
-        <div className="px-2 py-2.5 rounded-xl">
-          <div className="text-[13px] font-semibold text-gray-900">
-            本机演示
+      <div className="px-3 pb-2">
+        <div className="text-[10px] text-gray-400 leading-relaxed bg-gray-200/40 border border-gray-200/60 rounded-xl px-3 py-2">
+          <i className="fas fa-clock mr-1"></i>候选房源与合同属于<b>本次工作台临时数据（有效期 72 小时）</b>，长期保存与跨设备同步暂未承诺。
+        </div>
+      </div>
+
+      <div className="p-3 border-t border-gray-200/80 mt-auto">
+        <div
+          className="flex items-center justify-between px-2 py-2 rounded-xl hover:bg-gray-200/60 cursor-pointer transition-colors group"
+          title="本次工作台临时数据"
+          onClick={() => toast('本次工作台临时数据有效期 72 小时，长期存储暂未开放')}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative shrink-0">
+              <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-semibold text-xs">
+                <i className="fas fa-database text-xs"></i>
+              </div>
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#f7f7f8] rounded-full"></div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium text-gray-900 truncate">本次工作台</div>
+              <div className="text-[11px] text-gray-400 truncate">临时数据 · 有效期 72 小时</div>
+            </div>
           </div>
-          <div className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">
-            未做登录与多租户隔离，同一后端的合同彼此可见。
-          </div>
+          <i className="fas fa-gear text-gray-400 group-hover:text-gray-600 px-1 transition-colors text-xs"></i>
         </div>
       </div>
     </aside>

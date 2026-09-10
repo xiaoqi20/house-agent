@@ -1,33 +1,55 @@
-import { Route, Routes } from "react-router-dom";
-import { ContractDrawer } from "@/components/ContractDrawer";
-import { Sidebar } from "@/components/Sidebar";
-import { Toast } from "@/components/Toast";
-import { useChat } from "@/stores/chatStore";
-import { Workbench } from "@/routes/Workbench";
+import { useEffect } from 'react';
+import { Sidebar } from './components/Sidebar';
+import { Header } from './components/Header';
+import { ChatView } from './components/ChatView';
+import { HousesView } from './components/HousesView';
+import { ContractsView } from './components/ContractsView';
+import { HouseDrawer } from './components/HouseDrawer';
+import { ContractDrawer } from './components/ContractDrawer';
+import { ImportModal } from './components/ImportModal';
+import { PrefsModal } from './components/PrefsModal';
+import { ConfirmModal } from './components/ConfirmModal';
+import { Toast } from './components/Toast';
+import { FileInputs } from './components/FileInputs';
+import { useStore } from './store';
+import { bootstrap, closeContract, closeHouseDrawer } from './controller';
 
 export default function App() {
-  const title = useChat((s) => s.title);
+  const currentView = useStore((s) => s.currentView);
+
+  // api 模式：启动时探测服务并加载本次工作台（demo 模式不做任何事）
+  useEffect(() => {
+    void bootstrap();
+  }, []);
+
+  // 与原型一致：Esc 优先关闭房源抽屉，其次关闭合同抽屉
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      const s = useStore.getState();
+      if (s.houseDrawer.open) closeHouseDrawer();
+      else if (s.contractDrawer.open) closeContract();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
-    <div className="h-screen flex bg-white text-gray-800 overflow-hidden">
+    <div className="bg-white text-gray-800 overflow-hidden h-full flex">
       <Sidebar />
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-gray-100 flex items-center justify-between px-6 shrink-0">
-          <h2 className="text-[15px] font-semibold text-gray-900">{title}</h2>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-            </span>
-            本机演示 · 未做登录与数据隔离，结论不构成法律意见
-          </div>
-        </header>
-        <Routes>
-          <Route path="/" element={<Workbench />} />
-        </Routes>
+      <main className="flex-1 flex flex-col min-w-0 bg-white">
+        <Header />
+        <ChatView visible={currentView === 'chat'} />
+        <HousesView visible={currentView === 'houses'} />
+        <ContractsView visible={currentView === 'contracts'} />
       </main>
+      <HouseDrawer />
       <ContractDrawer />
+      <ImportModal />
+      <PrefsModal />
+      <ConfirmModal />
       <Toast />
+      <FileInputs />
     </div>
   );
 }
