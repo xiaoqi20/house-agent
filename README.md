@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="doc/images/04-recommend.png" width="880" alt="RentGraph 候选房源推荐：硬约束淘汰 + 可解释排序">
+  <img src="doc/images/01-home.png" width="880" alt="RentGraph 首页：单条 / 批量 / 开始筛选三个入口">
   <h1>RentGraph · 租房决策工作台</h1>
   <p><strong>把「房东怎么说的」和「合同怎么写的」逐条对上，再决定签不签。</strong></p>
   <p>
@@ -40,11 +40,11 @@ RentGraph 是一个单机可跑的租房决策工作台：把候选房源（粘�
 
 <table>
 <tr>
-<td width="50%"><img src="doc/images/01-home.png" alt="首页"></td>
+<td width="50%"><img src="doc/images/04-recommend.png" alt="候选房源推荐"></td>
 <td width="50%"><img src="doc/images/02-import-confirm.png" alt="导入确认"></td>
 </tr>
 <tr>
-<td align="center">首页：单条 / 批量 / 开始筛选三个入口</td>
+<td align="center">候选房源推荐：可解释排序（推荐理由 / 取舍 / 真实成本 / 信息风险）</td>
 <td align="center">导入确认：AI 抽字段，但<b>每个字段都附原文片段</b>由你确认</td>
 </tr>
 <tr>
