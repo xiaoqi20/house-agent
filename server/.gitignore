@@ -7,3 +7,11 @@ uploads/*
 !uploads/.gitkeep
 .pytest_cache/
 .ruff_cache/
+
+# 本地 SQLite（一期默认库）
+*.db
+*.db-journal
+
+# SQLite WAL/SHM（WAL 模式下运行时产物）
+*.db-wal
+*.db-shm
